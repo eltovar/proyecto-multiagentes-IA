@@ -66,8 +66,9 @@ Thumbs.db
 desktop.ini
 
 # Backup files
-*_backup.py
+*_backup*.py
 *.backup
+*_20*_*.py
 
 # Testing
 .coverage
@@ -88,6 +89,9 @@ knowledge_base/
 # Monitoring exports
 dashboard_report_*.json
 test_monitoring_report.json
+
+# Cleanup registry
+BACKUP_REGISTRY.md
 
 # API keys and secrets
 *.key
