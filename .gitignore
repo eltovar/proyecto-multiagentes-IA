@@ -93,6 +93,13 @@ test_monitoring_report.json
 # Cleanup registry
 BACKUP_REGISTRY.md
 
+DIAGRAMS_AND_FLOWS.md
+CLAUDE_CONTEXT.md
+DOCUMENTATION_INDEX.md
+MULTIAGENT_ARCHITECTURE.md
+TECHNICAL_DOCS.md
+
+
 # API keys and secrets
 *.key
 *.pem
