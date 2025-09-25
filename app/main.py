@@ -1,0 +1,57 @@
+'''
+    Aplicacion FASTAPI para el agente IA multiagentes.
+    Punto de entrada HTTP para webhooks de WhatsApp y endpoints de salud.
+'''
+from fastapi import FastAPI, Request, Response, HTTPException
+from app.core.processor import process_message
+from app.config import settings
+from app.state.models import initialize_database
+
+initialize_database()
+
+app = FastAPI(title="Agente IA Multiagentes", version="2.0")
+
+@app.get("/webhook")
+def verify_webhook(request: Request):
+    mode = request.query_params.get("hub.mode")
+    token = request.query_params.get("hub.verify_token")
+    challenge = request.query_params.get("hub.challenge")
+
+    if mode == "subscribe" and token == settings.WHATSAPP_VERIFY_TOKEN:
+        print("✅ Webhook verificado exitosamente!")
+        return Response(content=challenge, media_type="text/plain")
+
+    raise HTTPException(status_code=403, detail="Error de verificación")
+
+@app.post("/webhook")
+async def handle_webhook(request: Request):
+    data = await request.json()
+    print("📨 Webhook recibido:", data)
+
+    try:
+        message = data["entry"][0]["changes"][0]["value"]["messages"][0]
+        if message["type"] == "text":
+            await process_message(message)
+    except (KeyError, IndexError):
+        pass
+
+    return Response(status_code=200)
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok",
+        "architecture": "multiagentes",
+        "agents": ["ReceptionAgent", "SupportAgent", "LeadsalesAgent"]
+    }
+
+@app.get("/agents/status")
+def agents_status():
+    return {
+        "orchestrator": "active",
+        "agents": {
+            "ReceptionAgent": "active",
+            "SupportAgent": "active",
+            "LeadsalesAgent": "active"
+        }
+    }
