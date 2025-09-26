@@ -17,6 +17,7 @@ class AgentOrchestrator:
         }
 
         self.agent_priority = ["ReceptionAgent", "SupportAgent", "LeadsalesAgent"]
+        self.initialized = True
 
         self.log_action("Orquestador inicializado", f"Agentes disponibles: {list(self.agents.keys())}")
 

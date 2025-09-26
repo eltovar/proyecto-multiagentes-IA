@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     response_timeout_seconds: int = 3
     handoff_protocol_enabled: bool = True
 
+    # Flow Control Configuration
+    fixed_flow_mode: bool = True  # Activa flujo fijo sin LLM (optimización costos)
+    llm_fallback_enabled: bool = False  # LLM como fallback en errores
+
     # Security
     webhook_verify_signature: bool = True
 
@@ -54,12 +58,14 @@ class Settings(BaseSettings):
 
 # Estados validos de conversacion
 STATE_NUEVO = "NUEVO"
+STATE_ESPERANDO_RESPUESTA_INICIAL = "ESPERANDO_RESPUESTA_INICIAL"
 STATE_RECOPILANDO_NOMBRE = "RECOPILANDO_NOMBRE"
 STATE_RECOPILANDO_NECESIDAD = "RECOPILANDO_NECESIDAD"
 STATE_TRANSFERIDO = "TRANSFERIDO"
 
 VALID_STATES = [
     STATE_NUEVO,
+    STATE_ESPERANDO_RESPUESTA_INICIAL,
     STATE_RECOPILANDO_NOMBRE,
     STATE_RECOPILANDO_NECESIDAD,
     STATE_TRANSFERIDO

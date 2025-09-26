@@ -6,7 +6,7 @@ import sys
 import os
 
 # Imports del sistema
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from test_utils import simulate_whatsapp_message, print_welcome, handle_special_commands

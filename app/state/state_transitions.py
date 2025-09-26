@@ -12,7 +12,7 @@ class StateTransitionManager:
 
     def __init__(self):
         self.crud = ConversationCRUD()
-        self.valid_states = ["NUEVO", "RECOPILANDO_NOMBRE", "RECOPILANDO_NECESIDAD", "TRANSFERIDO"]
+        self.valid_states = ["NUEVO", "ESPERANDO_RESPUESTA_INICIAL", "RECOPILANDO_NOMBRE", "RECOPILANDO_NECESIDAD", "TRANSFERIDO"]
 
     def update_conversation_state(self, whatsapp_id: str, new_state: str, data: Dict[str, Any] = None) -> bool:
         if new_state not in self.valid_states:
@@ -60,7 +60,8 @@ class StateTransitionManager:
 
     def can_transition_to(self, current_state: str, new_state: str) -> bool:
         valid_transitions = {
-            "NUEVO": ["RECOPILANDO_NOMBRE", "TRANSFERIDO"],
+            "NUEVO": ["ESPERANDO_RESPUESTA_INICIAL", "RECOPILANDO_NOMBRE", "TRANSFERIDO"],
+            "ESPERANDO_RESPUESTA_INICIAL": ["RECOPILANDO_NOMBRE"],
             "RECOPILANDO_NOMBRE": ["RECOPILANDO_NECESIDAD", "TRANSFERIDO"],
             "RECOPILANDO_NECESIDAD": ["TRANSFERIDO"],
             "TRANSFERIDO": []

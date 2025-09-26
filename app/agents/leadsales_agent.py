@@ -25,15 +25,13 @@ class LeadsalesAgent(BaseAgent):
         whatsapp_id = message_data["from"]
 
         try:
-            lead_data = {
-                "name": customer_name,
-                "phone": whatsapp_id,
-                "needs": customer_needs,
-                "source": "WhatsApp_AI_Agent",
-                "status": "new"
-            }
-
-            lead_result = await self.leadsales_service.create_lead(lead_data)
+            # lead_data solo para datos adicionales si se requieren
+            lead_result = await self.leadsales_service.create_lead(
+                customer_name,
+                whatsapp_id,
+                customer_needs,
+                None # o algún diccionario si tienes datos extra
+                )
 
             self.log_action("Lead creado exitosamente", f"ID: {lead_result.get('id', 'N/A')}")
 

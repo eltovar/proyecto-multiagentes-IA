@@ -79,6 +79,38 @@ class LLMService:
 
         return result
 
+    async def classify_intent(self, classification_prompt: str) -> str:
+        """
+        Clasificación específica para reception_agent: retorna 'pregunta' o 'necesidad'
+        """
+        if not self.api_client.initialized:
+            return "necesidad"  # Fallback por defecto
+
+        try:
+            response = self.api_client.model.generate_content(
+                classification_prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.1,
+                    max_output_tokens=10
+                )
+            )
+
+            result = response.text.strip().lower()
+
+            # Validar que la respuesta sea correcta
+            if result in ["pregunta", "necesidad"]:
+                return result
+            else:
+                # Fallback: si contiene palabras clave de pregunta
+                if any(word in classification_prompt.lower() for word in ["qué", "cómo", "cuándo", "dónde", "por qué", "cuál", "?"]):
+                    return "pregunta"
+                else:
+                    return "necesidad"
+
+        except Exception as e:
+            print(f"[LLMService] Error en classify_intent: {e}")
+            return "necesidad"  # Fallback por defecto
+
     def health_check(self) -> Dict[str, Any]:
         if not self.api_client.initialized:
             return {"status": "unhealthy", "reason": "API no inicializada"}
