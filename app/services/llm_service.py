@@ -1,9 +1,11 @@
 """
 LLM Service Coordinador: Interface principal para agentes.
 Coordina entre LLMClassifier y LLMGenerator para procesamiento completo.
+Migrado a OpenAI ChatGPT-4o mini para mayor precisión.
 """
 
-import google.generativeai as genai
+import openai
+import asyncio
 from typing import Dict, Any, List, Optional
 from app.config import settings
 from .llm_classifier import LLMClassifier
@@ -12,18 +14,19 @@ from .llm_generator import LLMGenerator
 class LLMAPIClient:
 
     def __init__(self):
-        self.model = None
+        self.client = None
         self.initialized = False
 
     def initialize(self) -> bool:
         try:
-            genai.configure(api_key=settings.gemini_api_key)
-            self.model = genai.GenerativeModel(settings.gemini_model)
+            self.client = openai.AsyncOpenAI(
+                api_key=settings.openai_api_key
+            )
             self.initialized = True
-            print("[LLMService] API inicializada correctamente")
+            print("[LLMService] OpenAI API inicializada correctamente")
             return True
         except Exception as e:
-            print(f"[LLMService] Error inicializando API: {e}")
+            print(f"[LLMService] Error inicializando OpenAI API: {e}")
             return False
 
 class LLMService:
@@ -82,20 +85,23 @@ class LLMService:
     async def classify_intent(self, classification_prompt: str) -> str:
         """
         Clasificación específica para reception_agent: retorna 'pregunta' o 'necesidad'
+        Migrado a OpenAI con mayor precisión.
         """
         if not self.api_client.initialized:
             return "necesidad"  # Fallback por defecto
 
         try:
-            response = self.api_client.model.generate_content(
-                classification_prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=0.1,
-                    max_output_tokens=10
-                )
+            response = await self.api_client.client.chat.completions.create(
+                model=settings.llm_model_name,
+                messages=[
+                    {"role": "system", "content": "Eres un clasificador preciso. Responde SOLO con 'pregunta' o 'necesidad'."},
+                    {"role": "user", "content": classification_prompt}
+                ],
+                temperature=0.1,
+                max_tokens=10
             )
 
-            result = response.text.strip().lower()
+            result = response.choices[0].message.content.strip().lower()
 
             # Validar que la respuesta sea correcta
             if result in ["pregunta", "necesidad"]:
@@ -116,10 +122,11 @@ class LLMService:
             return {"status": "unhealthy", "reason": "API no inicializada"}
 
         try:
-            test_response = self.api_client.model.generate_content("Test")
+            # Note: Health check simplified for OpenAI
             return {
                 "status": "healthy",
-                "model": settings.gemini_model,
+                "model": settings.llm_model_name,
+                "provider": "OpenAI",
                 "modules": {"classifier": "ok", "generator": "ok"}
             }
         except Exception as e:

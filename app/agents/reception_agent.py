@@ -1,111 +1,292 @@
 '''
-    Agente de saludo, recopilacion de nombre y necesidad del cliente.
-    Maneja estados: NUEVO, RECOPILANDO_NOMBRE, RECOPILANDO
+    ReceptionAgent - Refactorizado con nuevo prompt
+    Responsabilidades: Flujo obligatorio de captación de datos (Etapas 1 y 2)
+    Personalidad: Sofía, humana, empática, profesional
 '''
 
 from typing import Dict, Any, Optional
 from app.agents.base_agent import BaseAgent
 
+# Estados específicos del flujo obligatorio
 STATE_NUEVO = "NUEVO"
-STATE_ESPERANDO_RESPUESTA_INICIAL = "ESPERANDO_RESPUESTA_INICIAL"
+STATE_POLITICAS_PRESENTADAS = "POLITICAS_PRESENTADAS"
 STATE_RECOPILANDO_NOMBRE = "RECOPILANDO_NOMBRE"
-STATE_RECOPILANDO_NECESIDAD = "RECOPILANDO_NECESIDAD"
+STATE_NOMBRE_OBTENIDO = "NOMBRE_OBTENIDO"
+STATE_PREGUNTA_CONTRATO_INMOBILIARIA = "PREGUNTA_CONTRATO_INMOBILIARIA"
+STATE_PREGUNTA_CUAL_INMOBILIARIA = "PREGUNTA_CUAL_INMOBILIARIA"
+STATE_PREGUNTA_SOLICITUD_LIBERTADOR = "PREGUNTA_SOLICITUD_LIBERTADOR"
+STATE_PREGUNTA_FECHA_NECESIDAD = "PREGUNTA_FECHA_NECESIDAD"
+STATE_FLUJO_COMPLETADO = "FLUJO_COMPLETADO"
 
 class ReceptionAgent(BaseAgent):
 
     def __init__(self):
         super().__init__("reception")
+        self.interaction_count = 0  # Contador de interacciones (máximo 10)
 
-        # Inicializar LLM service si está disponible
-        if self.llm_service and not self.llm_service.api_client.initialized:
-            self.llm_service.initialize()
+        # Links obligatorios para el flujo
+        self.youtube_link = "https://www.youtube.com/watch?v=xyz"
+        self.solicitud_gratis_link = "https://inmobiliariaproteger.com/solicitud-gratis"
+        self.politicas_link = "https://inmobiliariaproteger.com/main-contenido-cat-6.htm"
+        self.whatsapp_oficial = "324 551 6105"
 
     async def can_handle(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> bool:
-        valid_states = [STATE_NUEVO, STATE_ESPERANDO_RESPUESTA_INICIAL, STATE_RECOPILANDO_NOMBRE, STATE_RECOPILANDO_NECESIDAD]
-        return conversation.get("state") in valid_states
+        """El ReceptionAgent maneja todos los estados del flujo obligatorio"""
+        valid_states = [
+            STATE_NUEVO, STATE_POLITICAS_PRESENTADAS, STATE_RECOPILANDO_NOMBRE,
+            STATE_NOMBRE_OBTENIDO, STATE_PREGUNTA_CONTRATO_INMOBILIARIA,
+            STATE_PREGUNTA_CUAL_INMOBILIARIA, STATE_PREGUNTA_SOLICITUD_LIBERTADOR,
+            STATE_PREGUNTA_FECHA_NECESIDAD
+        ]
+        current_state = conversation.get("state", STATE_NUEVO)
+        return current_state in valid_states and self.interaction_count < 10
 
     async def process_message(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> Dict[str, Any]:
-        message = message_data.get("text", {}).get("body", "")
+        """Procesa mensaje siguiendo el flujo obligatorio estricto"""
+        message = message_data.get("text", {}).get("body", "").strip()
         whatsapp_id = message_data.get("from")
 
+        # Guardar referencia a conversación para métodos auxiliares
+        self._current_conversation = conversation
+
+        # Incrementar contador de interacciones
+        self.interaction_count = conversation.get("interaction_count", 0) + 1
+
         if not self.validate_message(message):
-            return self.create_response("Por favor, envía un mensaje válido.")
+            return self.create_response("Por favor, envía un mensaje válido.",
+                                      data_updates={"interaction_count": self.interaction_count})
 
         current_state = conversation.get("state", STATE_NUEVO)
-        customer_name = conversation.get("customer_name")
+        self.log_action("Procesando flujo obligatorio", {
+            "state": current_state,
+            "interaction": self.interaction_count
+        })
 
-        self.log_action("Procesando mensaje", {"state": current_state, "has_name": bool(customer_name)})
+        # Verificar límite de interacciones
+        if self.interaction_count >= 10:
+            return await self._handle_limite_interacciones()
 
         try:
+            # Máquina de estados del flujo obligatorio
             if current_state == STATE_NUEVO:
-                return await self._handle_greeting(customer_name)
-            elif current_state == STATE_ESPERANDO_RESPUESTA_INICIAL:
-                return await self._handle_initial_response(message, whatsapp_id)
+                return await self._handle_saludo_inicial()
+            elif current_state == STATE_POLITICAS_PRESENTADAS:
+                return await self._handle_recopilar_nombre(message)
             elif current_state == STATE_RECOPILANDO_NOMBRE:
-                return await self._handle_name_collection(message, whatsapp_id)
-            elif current_state == STATE_RECOPILANDO_NECESIDAD:
-                return await self._handle_need_collection(message, customer_name, whatsapp_id)
+                return await self._handle_validar_nombre(message)
+            elif current_state == STATE_NOMBRE_OBTENIDO:
+                return await self._handle_pregunta_contrato_inmobiliaria()
+            elif current_state == STATE_PREGUNTA_CONTRATO_INMOBILIARIA:
+                return await self._handle_respuesta_contrato(message)
+            elif current_state == STATE_PREGUNTA_CUAL_INMOBILIARIA:
+                return await self._handle_respuesta_cual_inmobiliaria(message)
+            elif current_state == STATE_PREGUNTA_SOLICITUD_LIBERTADOR:
+                return await self._handle_respuesta_solicitud_libertador(message)
+            elif current_state == STATE_PREGUNTA_FECHA_NECESIDAD:
+                return await self._handle_respuesta_fecha_necesidad(message)
             else:
-                self.log_error(f"Estado desconocido: {current_state}")
-                return await self._handle_greeting(customer_name)
+                self.log_error(f"Estado no reconocido: {current_state}")
+                return await self._handle_saludo_inicial()
 
         except Exception as e:
-            self.log_error("Error procesando mensaje", e)
-            return self.create_response("Disculpa, ocurrió un error. Un asesor se pondrá en contacto contigo.")
+            self.log_error("Error en flujo obligatorio", e)
+            return self.create_response(
+                "Disculpa, ocurrió un error. Un asesor se pondrá en contacto contigo.",
+                data_updates={"interaction_count": self.interaction_count}
+            )
 
-    async def _handle_greeting(self, customer_name: Optional[str] = None) -> Dict[str, Any]:
-        # Flujo fijo según especificación original: Primero pregunta qué necesita
-        response = "Hola, soy Sofía de Inmobiliaria Proteger ¿En qué puedo ayudarte?"
-        return self.create_response(response, new_state=STATE_ESPERANDO_RESPUESTA_INICIAL)
+    async def _handle_saludo_inicial(self) -> Dict[str, Any]:
+        """Etapa 1: Saludo inicial + Políticas de Privacidad"""
+        response = f"""Hola, soy Sofia de Inmobiliaria Proteger
 
-    async def _handle_initial_response(self, message: str, whatsapp_id: str) -> Dict[str, Any]:
-        # Flujo simple: Cualquier respuesta → Pedir nombre
-        response = "Me regalas tu nombre por favor?"
-        return self.create_response(response, new_state=STATE_RECOPILANDO_NOMBRE,
-                                  data_updates={"customer_needs": message})
+Al escribir aceptas nuestras Politicas de Privacidad ({self.politicas_link})
 
-    async def _handle_name_collection(self, message: str, whatsapp_id: str) -> Dict[str, Any]:
-        # Extraer y validar nombre del usuario
+¿Me podrias indicar tu nombre por favor?"""
+
+        return self.create_response(
+            response,
+            new_state=STATE_POLITICAS_PRESENTADAS,
+            data_updates={"interaction_count": self.interaction_count}
+        )
+
+    async def _handle_recopilar_nombre(self, message: str) -> Dict[str, Any]:
+        """Maneja respuesta después de presentar políticas"""
+        # Si ya respondió algo, extraer nombre
         name = self._extract_name(message)
-        if not name:
-            return self.create_response("No pude identificar tu nombre. ¿Podrías escribirlo de nuevo?",
-                                      new_state=STATE_RECOPILANDO_NOMBRE)
-
-        response = f"Perfecto, {name}! Un asesor pronto se estará comunicando contigo"
-        return self.create_response(response, new_state="TRANSFERIDO", transfer_to="LeadsalesAgent",
-                                  data_updates={"customer_name": name})
-
-    async def _handle_need_collection(self, message: str, customer_name: str, whatsapp_id: str) -> Dict[str, Any]:
-        # Clasificar intención y transferir al agente apropiado
-        from app.config import settings
-
-        if settings.fixed_flow_mode:
-            # Modo fijo: Transfer directo a Leadsales sin clasificación
-            response = f"Perfecto {customer_name}, un asesor pronto se estará comunicando contigo"
-            return self.create_response(response, new_state="TRANSFERIDO", transfer_to="LeadsalesAgent",
-                                      data_updates={"customer_needs": message})
+        if name:
+            return await self._handle_nombre_exitoso(name)
         else:
-            # Modo clasificación LLM: Decidir entre Support y Leadsales
-            return await self._classify_and_transfer(message, customer_name, whatsapp_id)
+            # Insistir en el nombre
+            response = "Para brindarte la mejor atención, necesito tu nombre. ¿Podrías indicármelo por favor?"
+            return self.create_response(
+                response,
+                new_state=STATE_RECOPILANDO_NOMBRE,
+                data_updates={"interaction_count": self.interaction_count}
+            )
+
+    async def _handle_validar_nombre(self, message: str) -> Dict[str, Any]:
+        """Validar nombre después de insistencia"""
+        name = self._extract_name(message)
+        if name:
+            return await self._handle_nombre_exitoso(name)
+        else:
+            # Segunda insistencia (es clave para el asesor)
+            response = "Tu nombre es clave para que nuestro asesor te brinde una atención personalizada. ¿Me lo puedes compartir?"
+            return self.create_response(
+                response,
+                new_state=STATE_RECOPILANDO_NOMBRE,
+                data_updates={"interaction_count": self.interaction_count}
+            )
+
+    async def _handle_nombre_exitoso(self, name: str) -> Dict[str, Any]:
+        """Nombre obtenido exitosamente, continuar flujo"""
+        response = f"Perfecto {name}, ahora necesito hacerte unas preguntas rápidas para conectarte con el asesor ideal."
+        return self.create_response(
+            response,
+            new_state=STATE_NOMBRE_OBTENIDO,
+            data_updates={
+                "customer_name": name,
+                "interaction_count": self.interaction_count
+            }
+        )
+
+    async def _handle_pregunta_contrato_inmobiliaria(self) -> Dict[str, Any]:
+        """Pregunta obligatoria 1: Contrato con inmobiliaria"""
+        response = "¿Actualmente tienes un contrato vigente con alguna inmobiliaria?"
+        return self.create_response(
+            response,
+            new_state=STATE_PREGUNTA_CONTRATO_INMOBILIARIA,
+            data_updates={"interaction_count": self.interaction_count}
+        )
+
+    async def _handle_respuesta_contrato(self, message: str) -> Dict[str, Any]:
+        """Manejar respuesta sobre contrato inmobiliaria"""
+        respuesta_lower = message.lower().strip()
+
+        if any(palabra in respuesta_lower for palabra in ["sí", "si", "yes", "tengo", "claro"]):
+            # Tiene contrato -> Preguntar cuál inmobiliaria
+            response = "¿Con cuál inmobiliaria tienes el contrato?"
+            return self.create_response(
+                response,
+                new_state=STATE_PREGUNTA_CUAL_INMOBILIARIA,
+                data_updates={
+                    "tiene_contrato_inmobiliaria": True,
+                    "interaction_count": self.interaction_count
+                }
+            )
+        else:
+            # No tiene contrato -> Continuar a solicitud Libertador
+            response = "Perfecto. ¿Ya tienes una solicitud aprobada por EL LIBERTADOR?"
+            return self.create_response(
+                response,
+                new_state=STATE_PREGUNTA_SOLICITUD_LIBERTADOR,
+                data_updates={
+                    "tiene_contrato_inmobiliaria": False,
+                    "interaction_count": self.interaction_count
+                }
+            )
+
+    async def _handle_respuesta_cual_inmobiliaria(self, message: str) -> Dict[str, Any]:
+        """Manejar respuesta sobre cuál inmobiliaria"""
+        # Registrar inmobiliaria y continuar
+        response = "Entendido. ¿Ya tienes una solicitud aprobada por EL LIBERTADOR?"
+        return self.create_response(
+            response,
+            new_state=STATE_PREGUNTA_SOLICITUD_LIBERTADOR,
+            data_updates={
+                "inmobiliaria_actual": message.strip(),
+                "interaction_count": self.interaction_count
+            }
+        )
+
+    async def _handle_respuesta_solicitud_libertador(self, message: str) -> Dict[str, Any]:
+        """Manejar respuesta sobre solicitud El Libertador"""
+        respuesta_lower = message.lower().strip()
+
+        if any(palabra in respuesta_lower for palabra in ["no", "nope", "aún no", "todavía no"]):
+            # No tiene solicitud -> Mostrar orientación y links
+            response = f"""Te oriento para que puedas aplicar:
+
+Video explicativo: {self.youtube_link}
+Solicitud GRATIS: {self.solicitud_gratis_link}
+
+¿Para que fecha necesitas el nuevo inmueble?"""
+
+            return self.create_response(
+                response,
+                new_state=STATE_PREGUNTA_FECHA_NECESIDAD,
+                data_updates={
+                    "tiene_solicitud_libertador": False,
+                    "interaction_count": self.interaction_count
+                }
+            )
+        else:
+            # Sí tiene solicitud -> Continuar directamente
+            response = "Excelente. ¿Para que fecha necesitas el nuevo inmueble?"
+            return self.create_response(
+                response,
+                new_state=STATE_PREGUNTA_FECHA_NECESIDAD,
+                data_updates={
+                    "tiene_solicitud_libertador": True,
+                    "interaction_count": self.interaction_count
+                }
+            )
+
+    async def _handle_respuesta_fecha_necesidad(self, message: str) -> Dict[str, Any]:
+        """Última pregunta del flujo - Transferir al siguiente agente"""
+        # Obtener nombre de los datos de conversación (no del mensaje)
+        conversation = getattr(self, '_current_conversation', {})
+        name = conversation.get("customer_name", "")
+
+        # Etapa 3: Gestión de Expectativas y Redirección
+        response = f"""{name}, he registrado tu interés.
+
+En breve, uno de nuestros asesores te contactará desde nuestro WhatsApp oficial, el {self.whatsapp_oficial}, para brindarte todos los detalles."""
+
+        return self.create_response(
+            response,
+            new_state=STATE_FLUJO_COMPLETADO,
+            transfer_to="LeadsalesAgent",  # Transfer al agente de ventas
+            data_updates={
+                "fecha_necesidad": message.strip(),
+                "interaction_count": self.interaction_count,
+                "flujo_recepcion_completado": True
+            }
+        )
+
+    async def _handle_limite_interacciones(self) -> Dict[str, Any]:
+        """Manejar límite de 10 interacciones alcanzado"""
+        response = f"""He registrado tu interés. Por favor contacta directamente a nuestro WhatsApp oficial {self.whatsapp_oficial} para continuar con tu consulta."""
+
+        return self.create_response(
+            response,
+            new_state="LIMITE_ALCANZADO",
+            transfer_to="LeadsalesAgent",
+            data_updates={"interaction_count": self.interaction_count}
+        )
 
     def _extract_name(self, message: str) -> Optional[str]:
+        """Extraer nombre del mensaje - Método mejorado"""
         clean_message = message.strip()
         words = clean_message.split()
 
-        # ✅ AÑADIR: Lista de respuestas negativas/inválidas
+        # Lista de respuestas inválidas
         invalid_responses = [
             "no", "nope", "na", "nada", "nunca", "ninguno", "ninguna",
             "si", "sí", "ok", "okay", "bueno", "bien", "vale",
-            "hola", "que", "qué", "como", "cómo", "cuando", "cuándo"
+            "hola", "que", "qué", "como", "cómo", "cuando", "cuándo",
+            "información", "info", "inmueble", "casa", "apartamento"
         ]
 
         # Verificar si es una respuesta inválida
         if len(words) == 1 and words[0].lower() in invalid_responses:
             return None
 
+        # Validar nombre simple (1-3 palabras, solo letras)
         if 1 <= len(words) <= 3 and all(word.isalpha() and len(word) >= 2 for word in words):
             return " ".join(word.title() for word in words)
 
+        # Buscar patrones específicos
         lower_message = clean_message.lower()
         patterns = ["mi nombre es ", "me llamo ", "soy ", "nombre: "]
         for pattern in patterns:
@@ -114,84 +295,16 @@ class ReceptionAgent(BaseAgent):
                 first_word = name_part.split()[0] if name_part.split() else ""
                 if first_word.isalpha() and len(first_word) >= 2:
                     return first_word.title()
+
         return None
 
-    async def _classify_and_transfer(self, message: str, customer_name: str, whatsapp_id: str) -> Dict[str, Any]:
-        """
-        Clasificación crítica usando LLM para decidir entre SupportAgent y LeadsalesAgent
-        Ubicación especificada: app/agents/reception_agent.py
-        Momento: Estado RECOPILANDO_NECESIDAD
-        """
-        try:
-            # Verificar que LLM service esté disponible
-            if not self.llm_service or not self.llm_service.api_client.initialized:
-                self.log_error("LLM service no disponible, usando fallback")
-                # Fallback con clasificación simple
-                classification = self._classify_intent_simple(message)
-            else:
-                # Prompt de clasificación según especificación LLM
-                classification_prompt = f"""
-                Clasifica esta consulta del usuario:
-
-                "pregunta" - Si es una consulta informativa general
-                "necesidad" - Si expresa una necesidad específica de producto/servicio
-
-                Consulta: "{message}"
-
-                Responde SOLO con: pregunta o necesidad
-                """
-
-                # 🚨 LLAMADA A GEMINI API AQUÍ
-                classification = await self.llm_service.classify_intent(classification_prompt)
-
-            if classification == "pregunta":
-                response = f"Entiendo {customer_name}, tienes preguntas. Te conecto con nuestro especialista."
-                return self.create_response(response, transfer_to="SupportAgent",
-                                          data_updates={"customer_needs": message})
-
-            elif classification == "necesidad":
-                response = f"¡Excelente {customer_name}! Te conecto con un asesor especializado."
-                return self.create_response(response, new_state="TRANSFERIDO", transfer_to="LeadsalesAgent",
-                                          data_updates={"customer_needs": message})
-
-            else:
-                # Fallback si clasificación no es clara
-                response = f"{customer_name}, ¿podrías ser más específico? ¿Tienes preguntas o necesitas algún servicio?"
-                return self.create_response(response, new_state=STATE_RECOPILANDO_NECESIDAD)
-
-        except Exception as e:
-            self.log_error("Error en clasificación LLM", e)
-            # Fallback en caso de error: ir a Leadsales como default
-            response = f"Perfecto {customer_name}, un asesor se pondrá en contacto contigo"
-            return self.create_response(response, new_state="TRANSFERIDO", transfer_to="LeadsalesAgent",
-                                      data_updates={"customer_needs": message})
-
-    def _classify_intent_simple(self, message: str) -> str:
-        """Clasificación simple sin LLM (fallback cuando LLM no está disponible)"""
-        lower_msg = message.lower()
-        question_indicators = ["qué", "cómo", "cuándo", "dónde", "por qué", "cuál", "?"]
-        need_indicators = ["necesito", "quiero", "busco", "requiero", "contratar", "comprar", "vender"]
-
-        question_score = sum(1 for indicator in question_indicators if indicator in lower_msg)
-        need_score = sum(1 for indicator in need_indicators if indicator in lower_msg)
-
-        if question_score > need_score and question_score > 0:
-            return "pregunta"
-        elif need_score > question_score and need_score > 0:
-            return "necesidad"
-        return "necesidad"  # Default fallback
-
-    def _classify_intent(self, message: str) -> str:
-        """Clasificación simple sin LLM (para modo fixed_flow_mode)"""
-        lower_msg = message.lower()
-        question_indicators = ["qué", "cómo", "cuándo", "dónde", "por qué", "cuál", "?"]
-        need_indicators = ["necesito", "quiero", "busco", "requiero", "contratar"]
-
-        question_score = sum(1 for indicator in question_indicators if indicator in lower_msg)
-        need_score = sum(1 for indicator in need_indicators if indicator in lower_msg)
-
-        if question_score > need_score and question_score > 0:
-            return "question"
-        elif need_score > question_score and need_score > 0:
-            return "need"
-        return "unclear"
+    def _mantener_flujo(self, estado_actual: str) -> str:
+        """Mantener flujo si cliente se desvía"""
+        flujo_messages = {
+            STATE_POLITICAS_PRESENTADAS: "Primero necesito tu nombre para continuar. ¿Me lo puedes compartir?",
+            STATE_RECOPILANDO_NOMBRE: "Tu nombre es importante para la atención personalizada. ¿Cuál es?",
+            STATE_PREGUNTA_CONTRATO_INMOBILIARIA: "Por favor responde: ¿Tienes contrato vigente con alguna inmobiliaria?",
+            STATE_PREGUNTA_SOLICITUD_LIBERTADOR: "Necesito saber: ¿Ya tienes solicitud aprobada por EL LIBERTADOR?",
+            STATE_PREGUNTA_FECHA_NECESIDAD: "¿Para que fecha necesitas el nuevo inmueble?"
+        }
+        return flujo_messages.get(estado_actual, "Sigamos con el proceso paso a paso.")

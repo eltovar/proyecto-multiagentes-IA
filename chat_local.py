@@ -14,6 +14,15 @@ try:
     from app.state.models import initialize_database
     from app.state.manager import state_manager, get_conversation_state
     from app.agents.reception_agent import ReceptionAgent
+    from app.config import settings
+
+    # PASO 1: Activar LLM temporalmente
+    settings.fixed_flow_mode = False
+    
+    print(f"[SYSTEM] LLM Status: {'ACTIVO' if not settings.fixed_flow_mode else 'DESACTIVADO'}")
+    print(f"[SYSTEM] Modelo: {settings.llm_model_name if not settings.fixed_flow_mode else 'N/A'}")
+    
+
 except ImportError as e:
     print(f"ERROR: Error importando modulos del sistema: {e}")
     sys.exit(1)
@@ -82,6 +91,17 @@ async def initialize_system() -> AgentOrchestrator:
     print("[SYSTEM] INFO Inicializando sistema...")
 
     try:
+        # AUTO-RESET: Limpiar conversaciones transferidas
+        try:
+            from app.state.crud_operations import ConversationCRUD
+            crud = ConversationCRUD()
+            conversation = crud.get_conversation(TEST_PHONE_NUMBER)
+            if conversation and conversation.state == "TRANSFERIDO":
+                crud.delete_conversation(TEST_PHONE_NUMBER)
+                print("[AUTO-RESET] Conversación transferida limpiada")
+        except:
+            pass
+
         # Inicializar base de datos
         initialize_database()
         print("[SYSTEM] EMOJI Base de datos inicializada")

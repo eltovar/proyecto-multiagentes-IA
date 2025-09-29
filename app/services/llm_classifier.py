@@ -1,18 +1,19 @@
 """
 LLM Classifier: Clasificación de intenciones y análisis de mensajes.
 Responsable de determinar el tipo de consulta y analizar mensajes de usuarios.
+Migrado a OpenAI con formato JSON robusto para mayor precisión.
 """
 
 import json
-import google.generativeai as genai
 from typing import Dict, Any
+from app.config import settings
 
 class LLMClassifier:
 
     def __init__(self, api_client):
         self.client = api_client
 
-    def classify_intention(self, message: str) -> Dict[str, Any]:
+    async def classify_intention(self, message: str) -> Dict[str, Any]:
         if not self.client.initialized:
             print("[LLMClassifier] Error: Cliente no inicializado")
             return {"type": "error", "confidence": 0.0}
@@ -20,15 +21,18 @@ class LLMClassifier:
         prompt = self._build_classification_prompt(message)
 
         try:
-            response = self.client.model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=0.3,
-                    max_output_tokens=200
-                )
+            response = await self.client.client.chat.completions.create(
+                model=settings.llm_model_name,
+                messages=[
+                    {"role": "system", "content": "Eres un clasificador experto de intenciones de clientes inmobiliarios. Responde SIEMPRE en formato JSON válido."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"},  # CRÍTICO: Garantiza JSON válido
+                temperature=0.3,
+                max_tokens=200
             )
 
-            result = json.loads(response.text.strip())
+            result = json.loads(response.choices[0].message.content.strip())
             print(f"[LLMClassifier] Clasificación: {result.get('type')} (confianza: {result.get('confidence')})")
 
             return result
@@ -37,7 +41,7 @@ class LLMClassifier:
             print(f"[LLMClassifier] Error clasificando intención: {e}")
             return {"type": "error", "confidence": 0.0, "reasoning": str(e)}
 
-    def analyze_message_sentiment(self, message: str) -> str:
+    async def analyze_message_sentiment(self, message: str) -> str:
         if not self.client.initialized:
             return "neutral"
 
@@ -53,8 +57,17 @@ class LLMClassifier:
         """
 
         try:
-            response = self.client.model.generate_content(prompt)
-            sentiment = response.text.strip().lower()
+            response = await self.client.client.chat.completions.create(
+                model=settings.llm_model_name,
+                messages=[
+                    {"role": "system", "content": "Analiza sentimientos. Responde solo: positivo, negativo o neutral."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.1,
+                max_tokens=10
+            )
+
+            sentiment = response.choices[0].message.content.strip().lower()
             return sentiment if sentiment in ["positivo", "negativo", "neutral"] else "neutral"
         except:
             return "neutral"

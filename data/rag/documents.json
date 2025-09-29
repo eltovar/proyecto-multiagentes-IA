@@ -1,0 +1,121 @@
+[
+  {
+    "id": 0,
+    "title": "blog_arriendo_claves_riesgos",
+    "content": "---\nAREA DE ASESORÍA: Asesoría a Propietarios - Seguridad y Alquiler\n---\nCLAVES PARA ALQUILAR SIN DOLORES DE CABEZA:\nPara proteger su patrimonio y evitar problemas, Inmobiliaria Proteger recomienda 5 claves:\n1. Ubicación: Resaltar lo mejor de la zona para atraer inquilinos más rápido.\n2. Seguridad: Realizar filtros rigurosos, verificación de información y análisis de capacidad de pago.\n3. Presentación: Un inmueble cuidado y bien mostrado se arrienda más rápido.\n4. Contratos: Usar cláusulas claras y justas, ajustadas a la ley.\n5. Administración: Gestión de pagos y seguimiento mes a mes para que solo reciba su renta sin preocupaciones.\n\nRIESGOS PRINCIPALES AL ARRENDAR SIN RESPALDO:\nLos riesgos principales incluyen: incumplimiento de pago (canon, servicios públicos o administración), daños locativos graves o enfrentar fiadores falsos.\nSOLUCIÓN: Contratar un seguro de arriendo o permitir la administración de la inmobiliaria. La compañía aseguradora asume la responsabilidad y puede iniciar procesos de lanzamiento sin costo para usted.",
+    "source": "knowledge_base\\blog_arriendo_claves_riesgos.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 1,
+    "title": "blog_arriendo_contrato_legalidad",
+    "content": "---\nAREA DE ASESORÍA: Asesoría Legal - Contratos y Validez\n---\nCONTRATO DE ARRENDAMIENTO ESCRITO VS. VERBAL:\n- Legalidad: Los contratos de arrendamiento pueden ser verbales o escritos, según la Ley 820 de 2003.\n- Seguridad: En contratos verbales, las pruebas se reducen y pueden carecer de validez legal en un proceso de restitución de inmueble.\n- Recomendación: Siempre es mejor hacer un contrato escrito para tener mayor seguridad en lo pactado.\n\nELEMENTOS MÍNIMOS DE UN CONTRATO:\nDebe acordar obligatoriamente: 1. Identificación del inmueble. 2. Precio y forma de pago. 3. Relación de servicios, cosas o usos conexos y adicionales. 4. Término de duración del contrato. 5. Designación de quién paga los servicios públicos.\nDURACIÓN: Si no se estipula un tiempo, se entiende que la duración del contrato será de **1 año** desde la firma.\n\nCANON MÁXIMO: El canon no puede ser mayor al 1% del valor comercial del inmueble, y este valor comercial no puede superar 2 veces el avalúo catastral.",
+    "source": "knowledge_base\\blog_arriendo_contrato_legalidad.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 2,
+    "title": "blog_arriendo_estudios_fraude",
+    "content": "---\nAREA DE ASESORÍA: Asesoría Legal - Fraude y Estudio de Arrendamiento\n---\nESTUDIO DE ARRENDAMIENTO:\nDefinición: Es un análisis que se realiza para comprobar que el inquilino podrá pagar el alquiler, funcionando como garantía para el arrendador.\nQuién lo realiza: La agencia inmobiliaria, entidad aseguradora o gestor de rentas.\nInformación Incluida: Ingresos del inquilino y del codeudor (deben superar el doble del costo mensual + gastos), historial crediticio y cumplimiento de obligaciones tributarias.\n\nFRAUDES INMOBILIARIOS MÁS COMUNES:\n1. Garantes falsos: Inquilinos que emplean garantes profesionales con documentos falsos.\n2. Suplantación de personal: Uso de identidad de terceros con medios económicos.\n3. Propietarios deshonestos: Estafadores que crean perfiles ficticios para pedir depósitos sin mostrar la propiedad.\n\nCONSEJOS DE PREVENCIÓN:\n- Nunca proporcionar información personal o bancaria a extraños.\n- Realizar trámites a través de **empresas inmobiliarias con respaldo de firma aseguradora** (como Inmobiliaria Proteger).\n- Investigar con anticipación.",
+    "source": "knowledge_base\\blog_arriendo_estudios_fraude.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 3,
+    "title": "blog_arriendo_gastos_administracion",
+    "content": "---\nAREA DE ASESORÍA: Asesoría Legal - Cuotas de Administración\n---\nQUIÉN DEBE PAGAR LAS CUOTAS DE ADMINISTRACIÓN:\n- Cuotas Ordinarias: Las paga el **ARRENDATARIO** (inquilino), ya que es el beneficiario directo de la seguridad y del uso de las zonas comunes.\n- Cuotas Extraordinarias: Las paga el **PROPIETARIO** (arrendador), ya que obedecen a reparaciones o situaciones urgentes que no son de uso normal.\n\nRECOMENDACIÓN: Lo ideal es que la responsabilidad de pago quede estipulada en el contrato en números y letras.\n\nRESTRICCIÓN EN TRASTEOS:\n- ¿El administrador puede retener el mobiliario por falta de pago? **NO.** Solo un juez puede ordenar retener bienes (embargo y secuestro).\n- Aunque el administrador exija paz y salvo para un trasteo, retener los bienes no es una acción legítima bajo la Ley 675 de 2001. La persona debe acudir a la policía.",
+    "source": "knowledge_base\\blog_arriendo_gastos_administracion.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 4,
+    "title": "blog_arriendo_incrementos_ley",
+    "content": "---\nAREA DE ASESORÍA: Asesoría Legal - Incrementos de Canon\n---\nREGLAS PARA EL INCREMENTO DEL CANON DE ARRENDAMIENTO (Ley 820 de 2003):\n- Límites: El aumento no puede superar el 100% del incremento del **IPC** (Índice de Precios al Consumidor) del año anterior.\n- Valor Máximo: El canon de arrendamiento no puede superar el 1% del valor comercial del inmueble.\n- Frecuencia: Solo se puede aumentar cuando se cumplan **12 meses** desde la firma o el último incremento.\n- Contratos Comerciales: El incremento es el que libremente pacten las partes, pudiendo ser por plazos menores a 12 meses.\n- Comunicación: El propietario debe informar al arrendatario (verbal o por escrito) el aumento y la fecha efectiva. Al pagar el incremento, el inquilino lo acepta.",
+    "source": "knowledge_base\\blog_arriendo_incrementos_ley.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 5,
+    "title": "info_cobertura_propiedades",
+    "content": "---\nAREA DE CONTACTO: Información General / Venta y Alquiler\n---\nCOBERTURA Y TIPOS DE PROPIEDADES:\n- Áreas de Cobertura Principal: Envigado, Sabaneta, Itagüí, La Estrella, Medellín y Antioquia en general.\n- Tipos de Propiedades: Apartamentos, Casas, Casas campestres, Locales comerciales, Lotes/Terrenos.\n\nINFORMACIÓN CRÍTICA SOBRE PRECIOS (ADVERTENCIA):\nLa siguiente información es solo una muestra de PROPIEDADES ANTERIORES para ejemplificar el mercado y NO refleja la disponibilidad ni los precios actuales.\n- Ejemplos de venta: Apartamentos desde $195,000,000 hasta $360,000,000. Casas en Envigado por $650,000,000.\n- Ejemplos de arriendo: Arriendos desde $1,600,000 hasta $3,300,000 mensuales.\n\nREGLA INQUEBRANTABLE DEL AGENTE:\nSi el cliente pregunta por disponibilidad, precios actuales o características de inmuebles específicos, NUNCA dar información de precios o detalles específicos. Responder ÚNICAMENTE: \"Esa información detallada la maneja directamente nuestro equipo de asesores. Ellos se pondrán en contacto contigo muy pronto para resolver todas tus dudas.\"",
+    "source": "knowledge_base\\info_cobertura_propiedades.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 6,
+    "title": "info_empresa_contacto_filosofia",
+    "content": "---\nAREA DE CONTACTO: Información General\n---\nINFORMACIÓN DE LA EMPRESA Y FILOSOFÍA:\nNombre: Inmobiliaria Proteger S.A.S.\nEspecialización: Venta y alquiler de inmuebles (residenciales y comerciales).\n\nFILOSOFÍA:\nSe describen como \"una inmobiliaria diferente\". Su énfasis es construir relaciones de confianza, ofrecer asesoría integral y personalizada, y garantizar los mejores negocios para propietarios e inquilinos, buscando un ambiente tranquilo y calidad de vida.\n\nDATOS DE CONTACTO GENERALES:\n- Dirección Física: Calle 36 Sur #41-37, Envigado, Antioquia, Colombia\n- Fijo: 444 6364 / (604) 6044446364\n- Celulares Generales: 3218175110 / 3122552330 / 3245516105\n- Correo Electrónico: info@inmobiliariaproteger.com\n- Sitio Web: www.inmobiliariaproteger.com\n- Redes Sociales: Tienen presencia en Facebook (Inmobiliaria Proteger) e Instagram (@inmobiliariaproteger), X (Twitter) y Skype.",
+    "source": "knowledge_base\\info_empresa_contacto_filosofia.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 7,
+    "title": "info_pagos_online",
+    "content": "---\nAREA DE CONTACTO: Información General / Pagos\n---\nOPCIONES Y MÉTODOS DE PAGO DEL ARRENDAMIENTO\nLa inmobiliaria ofrece varias opciones para facilitar el pago del arrendamiento:\n\n1. PSE de Davivienda: Disponible a través del Link de Pago en la página web.\n2. APP de Bancolombia: Usando el código 86582 (se inscribe la factura una sola vez).\n3. Pago en efectivo o código QR: Se realiza directamente en las oficinas físicas.\n\nCOSTOS IMPORTANTES:\n- Hay un costo por intermediación bancaria de $1,300 que se aplica únicamente a las opciones 1 y 2 (PSE y APP Bancolombia) a partir del 1 de junio de 2023.\n- En las oficinas físicas, NO hay ningún costo adicional de parte de la inmobiliaria.\n- El datáfono para pago con tarjeta fue cancelado.\n\nAPOYO:\n- Existen videos instructivos disponibles para aprender a realizar pagos virtuales por Davivienda y por la APP de Bancolombia.",
+    "source": "knowledge_base\\info_pagos_online.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 8,
+    "title": "nuestra_empresa",
+    "content": "---\nAREA DE CONTACTO: Información General\n---\nNUESTRA EMPRESA - INMOBILIARIA PROTEGER\n\nHISTORIA Y AFILIACIONES:\nInmobiliaria Proteger, establecida en 1990, es un miembro respetado de la Lonja de Propiedad Raíz de Medellín y Fenalco Antioquia. Nos especializamos en el arrendamiento, avalúo, venta e hipotecas de inmuebles en los municipios de Medellín, Envigado, Sabaneta, Itagüí y La Estrella. Nuestro compromiso es proporcionar soluciones inmobiliarias excepcionales que satisfagan las necesidades de nuestros clientes.\n\nMISIÓN:\nNuestra misión en Inmobiliaria Proteger es comprometernos diariamente con nuestros clientes de una manera productiva, dinámica y creativa. Nos enorgullece ser reconocidos por nuestra seriedad, efectividad, cumplimiento y excelencia en el servicio. Contamos con un equipo de talento humano excepcional, satisfecho con su trabajo y con un alto sentido de responsabilidad hacia nuestro país y nuestros accionistas.\n\nVISIÓN:\nNuestra visión es consolidarnos como la agencia inmobiliaria líder en el sur del Valle de Aburrá, reconocida por la calidad excepcional de nuestro servicio y atención al cliente. Aspiramos a ser la primera opción para clientes que buscan soluciones inmobiliarias en Medellín, Envigado, Sabaneta, Itagüí y La Estrella.\n\nMATRÍCULAS LEGALES:\n- Envigado: Matrícula arrendador No. 2452\n- Sabaneta: Matrícula arrendador Res No. 014 del 7/02/2017\n- Itagüí: Matrícula de arrendador resolución No 31287 del 25 de abril del 2016, modificada por la resolución No 206382 del 12 de noviembre de 2019\n- Medellín: Matrícula de Arrendador M.A.V.U. No 018/20",
+    "source": "knowledge_base\\nuestra_empresa.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 9,
+    "title": "soporte_administraciones_multas",
+    "content": "---\nAREA DE CONTACTO: Administraciones (Cuotas de Unidad Residencial y Multas)\nWHATSAPP OFICIAL: 320 609 2896\n---\nEste departamento maneja consultas relacionadas con:\n- Preguntas sobre el pago de administraciones.\n- Inconvenientes con multas que llegan en la factura de administración (ej. por vehículo).\n- Notificaciones de cuotas extras de administración que deben avisarse al propietario.",
+    "source": "knowledge_base\\soporte_administraciones_multas.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 10,
+    "title": "soporte_caja_pagos",
+    "content": "---\nAREA DE CONTACTO: Caja (Pagos, Consignaciones, Certificados de Renta)\nWHATSAPP OFICIAL: 322 502 1493\n---\nEste departamento maneja consultas específicas sobre:\n\nPROPIETARIOS:\n- Saber la fecha exacta de pago o consignación del arriendo.\n- Averiguar qué le descontaron del pago.\n- Solicitud de certificado para declaración de renta o certificado de ingresos.\n- Quejas sobre retrasos en el pago del arriendo por parte del inquilino.\n- Dudas sobre el horario de cobro de caja (horarios, días festivos, cobro anticipado).\n\nARRENDATARIOS:\n- Deseo pagar el arriendo y quisiera saber cuáles son los medios de pago.\n- Solicitud de confirmación de certificación de ingresos o historial de pagos.\n- Medios de pago: Puede efectuar su pago en línea a través de nuestra página web www.inmobiliariaproteger.com sección \"PAGOS ON-LINE\" o pagar en efectivo directamente en la inmobiliaria. Recuerde utilizar como referencia el número de su contrato.",
+    "source": "knowledge_base\\soporte_caja_pagos.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 11,
+    "title": "soporte_contabilidad_facturas",
+    "content": "---\nAREA DE CONTACTO: Contabilidad (Incrementos, Facturación y Retenciones)\nWHATSAPP OFICIAL: 322 502 1493\n---\nEste departamento maneja consultas financieras y tributarias como:\n- Necesita el Certificado tributario.\n- Dudas específicas respecto a una factura del canon de arrendamientos.\n- Problemas para encontrar recibos, egresos o facturas en la página web.\n- Preguntas sobre el incremento del canon de arrendamiento, el IPC (Índice de Precios al Consumidor).\n- Preguntas sobre retención en la fuente.\n- Factura de proveedores.",
+    "source": "knowledge_base\\soporte_contabilidad_facturas.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 12,
+    "title": "soporte_contratos_terminacion",
+    "content": "---\nAREA DE CONTACTO: Contratos (Terminación, Solicitudes, Convivencia y Documentación)\nWHATSAPP OFICIAL: 320 649 12 88\n---\nEste departamento es la principal área de servicio y maneja:\n\nTERMINACIÓN Y PRÓRROGA:\n- Averiguar cuándo termina o cómo prorrogar el contrato de arrendamiento.\n- Cuándo se debe mandar la carta de terminación de contrato.\n- Procedimientos si se va a desocupar por desempleo, viaje o por cualquier motivo.\n- Propietarios que necesiten pedir su propiedad.\n\nDOCUMENTACIÓN Y GESTIÓN:\n- Documentación necesaria para tomar un inmueble o para el proceso de arrendamiento.\n- Preguntas sobre incrementos, cobros a fiadores o retiro de ser fiador.\n- Preguntas sobre el porcentaje de administración o promoción de inmuebles.\n- Problemas con la firma digital del contrato o con la entrega inicial.\n\nCONVIVENCIA:\n- Quejas sobre vecinos (ruido, peleas, fumadores, domicilios).\n- Preguntas sobre por qué en la casa vive tanta gente si solo se arrendó para menos personas.",
+    "source": "knowledge_base\\soporte_contratos_terminacion.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 13,
+    "title": "soporte_juridico_legal",
+    "content": "---\nAREA DE CONTACTO: Jurídico / Abogado (Temas Legales, Crédito y Demandas)\nWHATSAPP OFICIAL: 321 789 86 79\n---\nEste departamento maneja asuntos legales y sensibles como:\n- Solicitud para hablar con el abogado.\n- Preguntas sobre reportes en centrales de riesgo (Data Crédito) o cómo cancelar un reporte.\n- Manejo de demandas o tutelas contra la inmobiliaria (incluyendo notificaciones desde un juzgado).\n- Solicitud de retiro o información sobre responsabilidades de un codeudor o excodeudor.",
+    "source": "knowledge_base\\soporte_juridico_legal.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 14,
+    "title": "soporte_recibimientos_entregas",
+    "content": "---\nAREA DE CONTACTO: Recibimientos (Entrega Física de Inmuebles)\nWHATSAPP OFICIAL: 319 259 08 85\n---\nEste departamento maneja la logística de:\n- Programar la entrega del apartamento que el arrendatario va a desocupar.\n- Preguntar cuándo se entregará el apartamento que ya desocuparon.\n- Preguntar por la fecha de entrega del inmueble.",
+    "source": "knowledge_base\\soporte_recibimientos_entregas.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 15,
+    "title": "soporte_reparaciones_emergencias",
+    "content": "---\nAREA DE CONTACTO: Reparaciones (Daños, Mantenimiento y Emergencias URGENTES)\nWHATSAPP OFICIAL: 323 515 80 07\n---\nEste departamento maneja:\n- Reportes o comentarios sobre daños o problemas en la propiedad.\n- Seguimiento a reparaciones que ya han sido reportadas.\n- Preguntas sobre cuándo se realizan las reparaciones.\n- **EMERGENCIAS EXTREMAS:** Inundación de la casa, se fue la luz, corto circuito, fuga de agua, explosión o incendio del calentador, niño encerrado en el baño.\n\n*Si el daño es una emergencia, el agente debe priorizar la respuesta y usar este contacto.*",
+    "source": "knowledge_base\\soporte_reparaciones_emergencias.txt",
+    "file_type": ".txt"
+  },
+  {
+    "id": 16,
+    "title": "soporte_servicios_publicos",
+    "content": "---\nAREA DE CONTACTO: Servicios Públicos (Facturación, Financiación y Revisión de Gas)\nWHATSAPP OFICIAL: 323 508 18 84\n---\nEste departamento maneja todo lo relacionado con:\n- Preguntas sobre la factura de servicios públicos (EPM).\n- Preguntas sobre cobro de financiación en factura servicios públicos.\n- Preguntas sobre dónde se debe llamar para la revisión periódica del gas y a quién le corresponde el pago.\n- Preguntas sobre el depósito de dinero para el pago de servicios públicos.",
+    "source": "knowledge_base\\soporte_servicios_publicos.txt",
+    "file_type": ".txt"
+  }
+]

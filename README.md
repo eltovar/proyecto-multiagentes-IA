@@ -42,7 +42,7 @@ Desarrollamos un **sistema de múltiples agentes de IA especializados** que auto
 ## 🛠️ Tecnologías Utilizadas
 
 - **Backend**: Python + FastAPI
-- **IA**: Google Gemini API
+- **IA**: gpt - 4o - mini
 - **Base de Conocimiento**: RAG (Retrieval Augmented Generation)
 - **Comunicación**: WhatsApp Business API (Meta)
 - **CRM**: Integración directa con Leadsales API

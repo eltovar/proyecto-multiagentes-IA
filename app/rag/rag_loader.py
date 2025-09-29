@@ -6,6 +6,7 @@ Responsable de la inicialización de todos los componentes RAG.
 import os
 import json
 import numpy as np
+import pickle
 from typing import List, Dict, Any, Optional
 from sentence_transformers import SentenceTransformer
 import faiss
@@ -24,7 +25,7 @@ class RAGLoader:
     def _check_rag_files(self) -> bool:
         required_files = [
             "documents.json",
-            "embeddings.npy",
+            "embeddings.pkl",
             "faiss_index.bin",
             "metadata.json"
         ]
@@ -51,8 +52,9 @@ class RAGLoader:
         return self.documents
 
     def _load_embeddings(self):
-        embeddings_path = self.rag_data_path / "embeddings.npy"
-        self.embeddings = np.load(embeddings_path)
+        embeddings_path = self.rag_data_path / "embeddings.pkl"
+        with open(embeddings_path, 'rb') as f:
+            self.embeddings = pickle.load(f)
 
         print(f"[RAGLoader] Cargados embeddings: {self.embeddings.shape}")
         return self.embeddings

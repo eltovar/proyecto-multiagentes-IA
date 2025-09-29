@@ -180,21 +180,23 @@ Contacto:
         # Normalizar embeddings para usar cosine similarity
         faiss.normalize_L2(embeddings)
 
-        # Validaciones antes de agregar al índice
+        # Validaciones robustas antes de agregar al índice
+        print(f"Embeddings shape: {embeddings.shape}, dtype: {embeddings.dtype}")
+        print(f"Index dimension: {index.d}")
         if embeddings.ndim != 2:
             raise ValueError(f"Embeddings deben ser 2D, pero tienen shape {embeddings.shape}")
         if embeddings.shape[1] != index.d:
             raise ValueError(f"La dimensión de los embeddings ({embeddings.shape[1]}) no coincide con la del índice ({index.d})")
+        if embeddings.shape[0] == 0:
+            raise ValueError("No hay embeddings para agregar al índice FAISS")
         if embeddings.dtype != np.float32:
             print(f"Convirtiendo embeddings de {embeddings.dtype} a float32...")
             embeddings = embeddings.astype(np.float32)
-        if embeddings.shape[0] == 0:
-            raise ValueError("No hay embeddings para agregar al índice FAISS")
-
+        
         # Agregar embeddings al índice
         index.add(embeddings)
 
-        print(f"✅ Índice FAISS construido con {index.ntotal} vectores")
+        print(f"Índice FAISS construido con {index.ntotal} vectores")
         return index
 
     def save_knowledge_base(

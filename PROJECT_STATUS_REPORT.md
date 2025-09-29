@@ -181,7 +181,7 @@ FUNCIÓN: Punto entrada webhook WhatsApp
 ```python
 # app/services/llm_service.py:60 líneas
 - Coordinador entre Classifier y Generator
-- API Google Gemini configurado
+- API OpenAI ChatGPT-4o mini configurado (migrado desde Gemini para mayor precisión)
 - Health check integrado
 ```
 
@@ -304,7 +304,7 @@ Campos:
 # app/config.py:60 líneas
 Configuraciones:
 - WhatsApp Business API (token, phone_number_id)
-- Google Gemini API (api_key, model, temperature)
+- gpt4omini (api_key, model, temperature)
 - Leadsales CRM API (api_url, token)
 - Pydantic Settings con validación
 ```
@@ -313,7 +313,7 @@ Configuraciones:
 ```bash
 # .env (723 bytes)
 - WHATSAPP_API_TOKEN
-- GEMINI_API_KEY
+- GPT-4O-MINI
 - LEADSALES_API_TOKEN
 - Todas las configuraciones críticas
 ```
@@ -436,7 +436,6 @@ uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
 pydantic-settings>=2.1.0
 requests>=2.31.0
-google-generativeai>=0.3.2
 sqlalchemy>=2.0.23
 python-dotenv>=1.0.0
 sentence-transformers>=2.2.2
@@ -468,7 +467,7 @@ pytest-asyncio>=0.21.1
 ### ✅ **COMPLETADO AL 100%**
 - ✅ Arquitectura multiagente funcional
 - ✅ Sistema RAG integrado
-- ✅ Integración LLM (Google Gemini)
+- ✅ Integración LLM (gpt 4o mini)
 - ✅ Gestión estado con Handoff Protocol
 - ✅ API WhatsApp Business preparada
 - ✅ Integración CRM Leadsales

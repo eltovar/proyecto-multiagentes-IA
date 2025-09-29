@@ -9,6 +9,15 @@ from app.state.models import initialize_database
 
 initialize_database()
 
+# Verificación visual del estado LLM al iniciar servidor
+print("=" * 60)
+print("SERVIDOR MULTIAGENTE IA - INICIANDO")
+print("=" * 60)
+print(f"[LLM STATUS] {'ACTIVO' if not settings.fixed_flow_mode else 'DESACTIVADO'}")
+print(f"[LLM MODEL]  {settings.llm_model_name if not settings.fixed_flow_mode else 'N/A'}")
+print(f"[MODE]       {'Clasificacion Inteligente' if not settings.fixed_flow_mode else 'Flujo Fijo'}")
+print("=" * 60)
+
 app = FastAPI(title="Agente IA Multiagentes", version="2.0")
 
 @app.get("/webhook")
@@ -42,7 +51,12 @@ def health_check():
     return {
         "status": "ok",
         "architecture": "multiagentes",
-        "agents": ["ReceptionAgent", "SupportAgent", "LeadsalesAgent"]
+        "agents": ["ReceptionAgent", "SupportAgent", "LeadsalesAgent"],
+        "llm": {
+            "status": "active" if not settings.fixed_flow_mode else "disabled",
+            "model": settings.llm_model_name if not settings.fixed_flow_mode else None,
+            "mode": "intelligent_classification" if not settings.fixed_flow_mode else "fixed_flow"
+        }
     }
 
 @app.get("/agents/status")

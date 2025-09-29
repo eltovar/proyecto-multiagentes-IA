@@ -31,57 +31,44 @@ def print_welcome():
     print("="*60 + "\n")
 
 async def handle_special_commands(user_input: str, state_manager) -> bool:
-    """Maneja comandos especiales - True si es comando"""
+    """Maneja comandos especiales - True si es comando de salida, False si continúa chat"""
     cmd = user_input.lower().strip()
 
-    if cmd in ['quit', 'salir', 'exit']:
+    if cmd in ["reset", "nuevo", "restart"]:
+        try:
+            from app.state.crud_operations import ConversationCRUD
+            phone = "573123456789"  # TEST_PHONE_NUMBER
+            crud = ConversationCRUD()
+            crud.delete_conversation(phone)
+            print("[RESET] Conversación eliminada. Estado limpio para nuevo flujo.")
+        except Exception as e:
+            print(f"[ERROR] Error en reset: {e}")
+        return False  # Continúa en chat, no sale
+
+    elif cmd in ["quit", "exit", "salir"]:
         print("WAVE Saliendo del chat local...")
-        return True
+        return True  # Sale del chat
 
-    elif cmd == 'reset':
+    elif cmd == "estado":
         try:
-            # Reset conversation state
-            phone = "573123456789"
-            conversation = state_manager.get_conversation(phone)
-            if conversation:
-                state_manager.update_conversation_state(
-                    whatsapp_id=phone,
-                    new_state="NUEVO",
-                    customer_name=None,
-                    customer_needs=None
-                )
-                print("EMOJI Conversacion reiniciada")
-            else:
-                print("WARN No hay conversacion para reiniciar")
+            from app.state.manager import get_conversation_state
+            phone = "573123456789"  # TEST_PHONE_NUMBER
+            conversation = get_conversation_state(phone)
+            print(f"[DEBUG] Estado actual: {conversation}")
         except Exception as e:
-            print(f"ERROR Error reiniciando: {e}")
-        return True
-
-    elif cmd == 'status':
-        try:
-            phone = "573123456789"
-            conversation = state_manager.get_conversation(phone)
-            if conversation:
-                print(f"\nEMOJI ESTADO DE CONVERSACION:")
-                print(f"  Estado: {conversation.state}")
-                print(f"  Nombre: {conversation.customer_name or 'No recopilado'}")
-                print(f"  Necesidades: {conversation.customer_needs or 'No recopiladas'}")
-            else:
-                print("WARN No hay conversacion activa")
-        except Exception as e:
-            print(f"ERROR Error obteniendo estado: {e}")
-        return True
+            print(f"[ERROR] Error obteniendo estado: {e}")
+        return False
 
     elif cmd == 'help':
         print("\nLIST COMANDOS DISPONIBLES:")
-        print("  quit/salir  → Salir del chat")
-        print("  reset       → Reiniciar conversacion")
-        print("  status      → Estado actual")
-        print("  help        → Esta ayuda")
+        print("  quit/salir/exit → Salir del chat")
+        print("  reset/nuevo/restart → Eliminar conversación y reiniciar")
+        print("  estado → Estado actual de conversación")
+        print("  help → Esta ayuda")
         print("\nTIP FLUJO SUGERIDO:")
         print("  1. 'Hola' → Saludo")
         print("  2. Tu nombre → Recopilacion")
         print("  3. 'Necesito...' → Transferencia")
-        return True
+        return False
 
     return False

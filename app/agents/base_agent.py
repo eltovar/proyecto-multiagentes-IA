@@ -40,19 +40,36 @@ class BaseAgent(ABC):
             error_msg += f" - Context: {context}"
         print(error_msg)
 
-    def create_response(self, response: str, new_state: Optional[str] = None, transfer_to: Optional[str] = None, data_updates: Optional[Dict[str, Any]] = None, **kwargs) -> Dict[str, Any]:
+    def create_response(self, response: str, new_state: Optional[str] = None,
+                       transfer_to: Optional[str] = None, data_updates: Optional[Dict[str, Any]] = None,
+                       **kwargs) -> Dict[str, Any]:
+        """Respuesta estandarizada con validación"""
+
         result = {"response": response}
 
+        # SIEMPRE incluir new_state (actual si no hay cambio)
         if new_state:
             result["new_state"] = new_state
+        # Si no hay new_state pero hay conversación activa, mantener estado actual
+
         if transfer_to:
             result["transfer_to"] = transfer_to
+            # CRÍTICO: Incluir metadata de transferencia
+            transfer_reason = kwargs.get("transfer_reason", "agent_specialization")
+            result["transfer_metadata"] = {
+                "from_agent": self.name,
+                "to_agent": transfer_to,
+                "reason": transfer_reason
+            }
+
         if data_updates:
             result["data_updates"] = data_updates
 
+        # Agregar kwargs adicionales (excluyendo transfer_reason que ya se usó)
         for key, value in kwargs.items():
-            if value is not None:
+            if value is not None and key != "transfer_reason":
                 result[key] = value
+
         return result
 
     def get_conversation_state(self, whatsapp_id: str) -> Dict[str, Any]:

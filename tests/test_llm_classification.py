@@ -28,7 +28,7 @@ async def test_llm_classification():
     # Configurar para modo LLM (no fixed_flow)
     original_mode = settings.fixed_flow_mode
     settings.fixed_flow_mode = False
-    print(f"Modo LLM activado (fixed_flow_mode: {settings.fixed_flow_mode})")
+    print(f"Modo OpenAI LLM activado (fixed_flow_mode: {settings.fixed_flow_mode})")
 
     try:
         # Configurar estado correcto para LLM
