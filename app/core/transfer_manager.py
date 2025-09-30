@@ -1,6 +1,7 @@
 """Gestion de transferencias entre agentes - Maximo 60 lineas"""
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any
+from app.utils.error_logger import log_error, log_info
 
 class TransferManager:
     """Maneja transferencias entre agentes"""
@@ -58,7 +59,7 @@ class TransferManager:
             }
 
         except Exception as e:
-            print(f"[TransferManager] Error en transferencia: {e}")
+            log_error("TransferManager", "Error en transferencia", e, {"transfer_to": transfer_to})
             return {
                 "status": "transfer_error",
                 "message": f"Error transfiriendo a {transfer_to}: {str(e)}"

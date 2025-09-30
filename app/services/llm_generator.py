@@ -7,6 +7,7 @@ Migrado a OpenAI para mejor integración RAG con system/user prompts.
 import json
 from typing import List, Optional
 from app.config import settings
+from app.utils.error_logger import log_error, log_info
 
 class LLMGenerator:
 
@@ -67,7 +68,7 @@ FORMATO DE RESPUESTA: Directa, profesional y sin saludos innecesarios."""
             return generated_response
 
         except Exception as e:
-            print(f"[LLMGenerator] Error generando respuesta: {e}")
+            log_error("LLMGenerator", "Error generando respuesta", e)
             customer_greeting = f", {customer_name}" if customer_name else ""
             return f"Lo siento{customer_greeting}, ocurrió un error procesando tu consulta. Un especialista se pondrá en contacto contigo pronto."
 
@@ -108,7 +109,7 @@ Formato: ["pregunta 1", "pregunta 2", "pregunta 3"]"""
                 return []
 
         except Exception as e:
-            print(f"[LLMGenerator] Error generando follow-ups: {e}")
+            log_error("LLMGenerator", "Error generando follow-ups", e)
             return []
 
     def generate_greeting_message(self, user_name: str) -> str:

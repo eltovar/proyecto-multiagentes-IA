@@ -1,6 +1,6 @@
 
 import time
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from app.agents.reception_agent import ReceptionAgent
 from app.agents.support_agent import SupportAgent
 from app.agents.leadsales_agent import LeadsalesAgent

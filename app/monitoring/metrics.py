@@ -2,7 +2,7 @@
 """Sistema de métricas de performance"""
 
 import time
-from typing import Dict, Any, List
+from typing import Dict, Any
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
 

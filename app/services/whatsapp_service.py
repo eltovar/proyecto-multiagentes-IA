@@ -5,7 +5,8 @@ Manejo de envios y recepcion de mensajes.
 '''
 
 import asyncio
-from typing import Dict, Any, Optional
+from typing import Dict, Any
+from app.utils.error_logger import log_error, log_info
 
 async def send_message(to: str, message: str, message_type: str = "text") -> bool:
     """
@@ -28,7 +29,7 @@ async def send_message(to: str, message: str, message_type: str = "text") -> boo
         return True
 
     except Exception as e:
-        print(f"[WhatsApp] Error enviando mensaje: {e}")
+        log_error("WhatsApp", "Error enviando mensaje", e)
         return False
 
 def validate_webhook_signature(signature: str, payload: str) -> bool:
@@ -56,10 +57,10 @@ class WhatsAppService:
         try:
             # TODO: Configurar cliente API real
             self.initialized = True
-            print("[WhatsApp] Servicio inicializado")
+            log_info("WhatsApp", "Servicio inicializado")
             return True
         except Exception as e:
-            print(f"[WhatsApp] Error inicializando: {e}")
+            log_error("WhatsApp", "Error inicializando", e)
             return False
 
     async def send_text_message(self, to: str, text: str) -> bool:

@@ -4,16 +4,13 @@
     Personalidad: Sofia (altamente enfocado, profesional, motivador)
 '''
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from .base_agent import BaseAgent
 from app.services.leadsales_service import LeadsalesService
-
-# Estados específicos del proceso de conversión
-STATE_CAPTURANDO_DETALLES = "CAPTURANDO_DETALLES"
-STATE_PROFUNDIZANDO_NECESIDAD = "PROFUNDIZANDO_NECESIDAD"
-STATE_CONFIRMANDO_INFORMACION = "CONFIRMANDO_INFORMACION"
-STATE_PROCESANDO_CRM = "PROCESANDO_CRM"
-STATE_LEAD_CREADO = "LEAD_CREADO"
+from app.config import (
+    STATE_CAPTURANDO_DETALLES, STATE_PROFUNDIZANDO_NECESIDAD,
+    STATE_CONFIRMANDO_INFORMACION, STATE_PROCESANDO_CRM, STATE_LEAD_CREADO
+)
 
 class LeadsalesAgent(BaseAgent):
 

@@ -5,6 +5,7 @@
 import httpx
 from typing import Dict, Any, Optional
 from app.config import settings
+from app.utils.error_logger import log_error, log_info
 
 class LeadsalesClient:
     """Cliente HTTP simplificado para API de Leadsales"""
@@ -22,10 +23,10 @@ class LeadsalesClient:
                 return self._validate_response(response)
 
         except httpx.TimeoutException:
-            print("[LeadsalesClient] Timeout conectando con API")
+            log_error("LeadsalesClient", "Timeout conectando con API")
             return {"success": False, "error": "Timeout en API de Leadsales"}
         except Exception as e:
-            print(f"[LeadsalesClient] Error inesperado: {e}")
+            log_error("LeadsalesClient", "Error inesperado", e)
             return {"success": False, "error": f"Error inesperado: {str(e)}"}
 
     async def get_lead(self, whatsapp_id: str) -> Optional[Dict[str, Any]]:
@@ -39,7 +40,7 @@ class LeadsalesClient:
                         return leads_data[0]
 
         except Exception as e:
-            print(f"[LeadsalesClient] Error buscando lead: {e}")
+            log_error("LeadsalesClient", "Error buscando lead", e)
 
         return None
 
@@ -49,14 +50,14 @@ class LeadsalesClient:
                 response = await client.patch(f"{self.api_url}/leads/{lead_id}", json=update_data, headers=self._get_headers())
 
                 if response.status_code == 200:
-                    print(f"[LeadsalesClient] Lead {lead_id} actualizado")
+                    log_info("LeadsalesClient", f"Lead {lead_id} actualizado")
                     return True
                 else:
-                    print(f"[LeadsalesClient] Error actualizando lead: {response.status_code}")
+                    log_error("LeadsalesClient", f"Error actualizando lead: {response.status_code}")
                     return False
 
         except Exception as e:
-            print(f"[LeadsalesClient] Error actualizando lead {lead_id}: {e}")
+            log_error("LeadsalesClient", f"Error actualizando lead {lead_id}", e)
             return False
 
     async def assign_advisor(self, lead_id: str, criteria: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -67,14 +68,14 @@ class LeadsalesClient:
                 if response.status_code == 200:
                     assignment_result = response.json()
                     advisor_info = assignment_result.get("advisor", {})
-                    print(f"[LeadsalesClient] Asesor asignado: {advisor_info.get('name')}")
+                    log_info("LeadsalesClient", f"Asesor asignado: {advisor_info.get('name')}")
                     return {"success": True, "advisor": advisor_info}
                 else:
-                    print(f"[LeadsalesClient] Error asignando asesor: {response.status_code}")
+                    log_error("LeadsalesClient", f"Error asignando asesor: {response.status_code}")
                     return {"success": False, "error": f"Error HTTP {response.status_code}"}
 
         except Exception as e:
-            print(f"[LeadsalesClient] Error asignando asesor: {e}")
+            log_error("LeadsalesClient", "Error asignando asesor", e)
             return {"success": False, "error": str(e)}
 
     async def health_check(self) -> Dict[str, Any]:
@@ -96,12 +97,12 @@ class LeadsalesClient:
         if response.status_code == 201:
             result_data = response.json()
             lead_id = result_data.get("id", "unknown")
-            print(f"[LeadsalesClient] Lead creado: {lead_id}")
+            log_info("LeadsalesClient", f"Lead creado: {lead_id}")
             return {"success": True, "lead_id": lead_id, "data": result_data}
         elif response.status_code == 409:
-            print("[LeadsalesClient] Lead ya existe")
+            log_info("LeadsalesClient", "Lead ya existe")
             return {"success": False, "error": "Lead ya existe", "code": "DUPLICATE"}
         else:
             error_detail = response.text
-            print(f"[LeadsalesClient] Error API: {response.status_code} - {error_detail}")
+            log_error("LeadsalesClient", f"Error API: {response.status_code} - {error_detail}")
             return {"success": False, "error": f"Error HTTP {response.status_code}: {error_detail}"}

@@ -10,6 +10,7 @@ from typing import Dict, Any, List, Optional
 from app.config import settings
 from .llm_classifier import LLMClassifier
 from .llm_generator import LLMGenerator
+from app.utils.error_logger import log_error, log_info
 
 class LLMAPIClient:
 
@@ -23,10 +24,10 @@ class LLMAPIClient:
                 api_key=settings.openai_api_key
             )
             self.initialized = True
-            print("[LLMService] OpenAI API inicializada correctamente")
+            log_info("LLMService", "OpenAI API inicializada correctamente")
             return True
         except Exception as e:
-            print(f"[LLMService] Error inicializando OpenAI API: {e}")
+            log_error("LLMService", "Error inicializando OpenAI API", e)
             return False
 
 class LLMService:
@@ -114,7 +115,7 @@ class LLMService:
                     return "necesidad"
 
         except Exception as e:
-            print(f"[LLMService] Error en classify_intent: {e}")
+            log_error("LLMService", "Error en classify_intent", e)
             return "necesidad"  # Fallback por defecto
 
     def health_check(self) -> Dict[str, Any]:

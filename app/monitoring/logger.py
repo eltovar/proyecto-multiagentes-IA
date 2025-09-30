@@ -4,7 +4,7 @@
 import json
 import time
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from pathlib import Path
 
 class StructuredLogger:

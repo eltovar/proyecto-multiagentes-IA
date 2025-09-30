@@ -103,11 +103,6 @@ class BaseAgent(ABC):
             return False
         return True
 
-    def is_question(self, message: str) -> bool:
-        question_indicators = ["?", "qué", "cómo", "cuándo", "dónde", "por qué", "cuál"]
-        message_lower = message.lower()
-        return any(indicator in message_lower for indicator in question_indicators)
-
     def get_agent_status(self) -> Dict[str, Any]:
         return {
             "name": self.name,

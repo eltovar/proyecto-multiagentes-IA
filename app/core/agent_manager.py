@@ -1,6 +1,7 @@
 """Gestion y registro de agentes - Maximo 80 lineas"""
 
 from typing import Dict, Any, Optional
+from app.utils.error_logger import log_error, log_info
 
 class AgentManager:
     """Maneja registro y seleccion de agentes"""
@@ -69,15 +70,15 @@ class AgentManager:
             return True
 
         except ImportError as e:
-            print(f"[AgentManager] Error importando agentes: {e}")
+            log_error("AgentManager", "Error importando agentes", e)
             if "ReceptionAgent" in str(e):
                 raise  # Reception es critico
             else:
-                print("[AgentManager] Algunos agentes no estan disponibles aun")
+                log_info("AgentManager", "Algunos agentes no estan disponibles aun")
                 self.initialized = True
                 return True
         except Exception as e:
-            print(f"[AgentManager] Error inicializando agentes: {e}")
+            log_error("AgentManager", "Error inicializando agentes", e)
             return False
 
     def health_check(self) -> Dict[str, Any]:

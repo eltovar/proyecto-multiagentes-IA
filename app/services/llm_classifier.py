@@ -7,6 +7,7 @@ Migrado a OpenAI con formato JSON robusto para mayor precisión.
 import json
 from typing import Dict, Any
 from app.config import settings
+from app.utils.error_logger import log_error, log_info
 
 class LLMClassifier:
 
@@ -15,7 +16,7 @@ class LLMClassifier:
 
     async def classify_intention(self, message: str) -> Dict[str, Any]:
         if not self.client.initialized:
-            print("[LLMClassifier] Error: Cliente no inicializado")
+            log_error("LLMClassifier", "Cliente no inicializado")
             return {"type": "error", "confidence": 0.0}
 
         prompt = self._build_classification_prompt(message)
@@ -38,7 +39,7 @@ class LLMClassifier:
             return result
 
         except Exception as e:
-            print(f"[LLMClassifier] Error clasificando intención: {e}")
+            log_error("LLMClassifier", "Error clasificando intención", e)
             return {"type": "error", "confidence": 0.0, "reasoning": str(e)}
 
     async def analyze_message_sentiment(self, message: str) -> str:
