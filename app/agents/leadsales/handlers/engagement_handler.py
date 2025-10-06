@@ -9,6 +9,7 @@ from app.config import STATE_CAPTURANDO_DETALLES, STATE_PROFUNDIZANDO_NECESIDAD
 
 
 class EngagementHandler:
+    
     """Handles initial customer engagement and conversation initiation"""
 
     def __init__(self, response_generator, logger=None):

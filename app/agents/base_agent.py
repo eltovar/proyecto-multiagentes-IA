@@ -18,13 +18,15 @@ class BaseAgent(ABC):
     def __init__(self, name: str):
         self.name = name
         self.agent_name = name  # Compatibilidad con código existente
-        self.llm_service = llm_service
+        self.llm_service = llm_service #Cualquier agente puede usar el LLM
         self.initialized = True
 
+    #orquestador decide ruteo
     @abstractmethod
     async def can_handle(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> bool:
         pass
-
+    
+    #lógica de cada agente
     @abstractmethod
     async def process_message(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> Dict[str, Any]:
         pass

@@ -2,15 +2,8 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 import os
 
-class Settings(BaseSettings):
-    """
-    Gestion centralizada de configuraciones Todo el sistema depende de estas confuguraciones.
+class Settings(BaseSettings): #Hereda de baseSetting para configuraciones automaticas de .env
     
-    - WhatsApp Business API (Meta)
-    - gpm 4o mini
-    - Leadsales CRM API
-    """
-
     # WhatsApp Business API Configuration
     whatsapp_api_token: str
     whatsapp_verify_token: str
@@ -44,7 +37,7 @@ class Settings(BaseSettings):
     response_timeout_seconds: int = 3
     handoff_protocol_enabled: bool = True
 
-    # Flow Control Configuration
+    # Flow Control Configuration (definen si el sistema se basa en un flujo rígido o usa el LLM (gpt-4o-mini) para la clasificación y ruteo.)
     fixed_flow_mode: bool = False  # ACTIVADO: Usa LLM ChatGPT-4o mini para clasificación
     llm_fallback_enabled: bool = True  # LLM activado para mejor precisión
 
@@ -86,6 +79,11 @@ STATE_LEAD_CREADO = "LEAD_CREADO"
 STATE_ESPERANDO_RESPUESTA_INICIAL = "ESPERANDO_RESPUESTA_INICIAL"
 STATE_RECOPILANDO_NECESIDAD = "RECOPILANDO_NECESIDAD"
 
+# Estados tri-path routing (NUEVO)
+STATE_ROUTING_ANALYSIS = "ROUTING_ANALYSIS"
+STATE_SUPPORT_ACTIVE = "SUPPORT_ACTIVE"
+STATE_DEPARTMENT_REDIRECT = "DEPARTMENT_REDIRECT"
+
 VALID_STATES = [
     # Estados de ReceptionAgent
     STATE_NUEVO,
@@ -112,8 +110,51 @@ VALID_STATES = [
     STATE_LEAD_CREADO,
     # Legacy states
     STATE_ESPERANDO_RESPUESTA_INICIAL,
-    STATE_RECOPILANDO_NECESIDAD
+    STATE_RECOPILANDO_NECESIDAD,
+    # Tri-path routing states
+    STATE_ROUTING_ANALYSIS,
+    STATE_SUPPORT_ACTIVE,
+    STATE_DEPARTMENT_REDIRECT
 ]
+
+# CONFIGURACIÓN DE DEPARTAMENTOS (Todos los agentes deben adherirse estrictamente a estas transiciones.)
+DEPARTMENT_CONTACTS = {
+    "propietarios": {
+        "phone": "322 502 1493",
+        "name": "Departamento de Propietarios",
+        "hours": "Lun-Vie 8AM-6PM",
+        "services": ["Reportes de inmuebles", "Administración", "Consultas propietarios"],
+        "keywords": ["propietario", "dueño", "arrendador", "mi inmueble"]
+    },
+    "proveedores": {
+        "phone": "323 515 8007",
+        "name": "Departamento de Proveedores",
+        "hours": "Lun-Vie 8AM-5PM",
+        "services": ["Alianzas comerciales", "Materiales", "Servicios"],
+        "keywords": ["proveedor", "materiales", "servicios", "alianza"]
+    },
+    "contratos": {
+        "phone": "320 649 1288",
+        "name": "Departamento de Contratos",
+        "hours": "Lun-Vie 8AM-6PM",
+        "services": ["Renovación contratos", "Cláusulas", "Términos legales"],
+        "keywords": ["contrato", "renovar", "cancelar", "cláusula"]
+    },
+    "reparaciones": {
+        "phone": "323 515 8007",
+        "name": "Mantenimiento y Reparaciones",
+        "hours": "24/7 Emergencias",
+        "services": ["Reparaciones urgentes", "Mantenimiento preventivo", "Emergencias"],
+        "keywords": ["reparación", "daño", "arreglo", "fuga", "mantenimiento"]
+    },
+    "abogados": {
+        "phone": "321 789 8679",
+        "name": "Departamento Legal",
+        "hours": "Lun-Vie 9AM-5PM",
+        "services": ["Asesoría jurídica", "Demandas", "Trámites legales"],
+        "keywords": ["abogado", "legal", "demanda", "jurídico"]
+    }
+}
 
 # Singleton para acceso global
 settings = Settings()

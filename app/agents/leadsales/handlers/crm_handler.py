@@ -102,9 +102,28 @@ class CRMHandler:
             "demo_mode": lead_result.get("demo_mode", False)
         })
 
-        # DEMO VISUALIZATION
+        # DEMO VISUALIZATION COMPLETA - ACCIONES 5.1-5.5
         if lead_result.get("demo_mode", False):
             DemoVisualizer.display_crm_preview(customer_name, lead_result)
+
+            # Mostrar simulación visual completa
+            if "visual_crm_simulation" in lead_result:
+                print(lead_result["visual_crm_simulation"])
+
+            # Mostrar asignación inteligente
+            if "asignacion_inteligente" in lead_result:
+                assignment = lead_result["asignacion_inteligente"]
+                print(f"\n🎯 ASIGNACIÓN INTELIGENTE COMPLETADA:")
+                print(f"👨‍💼 Asesor: {assignment.get('asesor_asignado', 'N/A')}")
+                print(f"🏆 Especialización: {assignment.get('especializacion', 'N/A')}")
+                print(f"📊 Match Score: {assignment.get('match_score', 'N/A')}")
+                print(f"✅ Razón: {assignment.get('razon', 'N/A')}")
+                print(f"📞 Contacto: {assignment.get('contacto', 'N/A')}")
+                print(f"⏰ Disponibilidad: {assignment.get('disponibilidad', 'N/A')}")
+
+            # Mostrar tabla comparativa
+            if "tabla_comparativa" in lead_result:
+                print(lead_result["tabla_comparativa"])
 
         # Mensaje final con gestión de expectativas
         final_message = f"""¡Excelente {customer_name}! Con la información que me has dado, he creado un registro detallado para nuestro asesor.

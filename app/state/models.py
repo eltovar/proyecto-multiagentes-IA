@@ -6,10 +6,7 @@ from app.config import STATE_NUEVO, VALID_STATES
 
 class ConversationState:
     """
-    Esquema de SQLite para el estado de conversaciones y define estructura de datos. 
-
-    Representa una conversacion individual con un cliente de WhatsApp,
-    incluyendo todos los datos recopilados y el estado actual en el flujo.
+   ConversationState que representa el estado de una conversación y contiene las funciones para inicializar y conectar a la base de datos SQLite
     """
 
     def __init__(

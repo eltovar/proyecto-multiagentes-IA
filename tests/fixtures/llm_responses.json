@@ -1,0 +1,177 @@
+{
+  "extraction_with_name_and_property": {
+    "nombre": "Carlos",
+    "intent": "property_search",
+    "confidence": 0.95,
+    "entities": {
+      "property_type": "apartamento",
+      "location": "Chapinero",
+      "budget": 2000000,
+      "rooms": 2,
+      "bathrooms": null,
+      "urgency": null,
+      "current_situation": null
+    },
+    "reasoning": "Usuario se presenta con nombre completo y expresa búsqueda específica de apartamento con presupuesto y ubicación"
+  },
+
+  "extraction_name_only_greeting": {
+    "nombre": "María Fernanda",
+    "intent": "greeting",
+    "confidence": 0.92,
+    "entities": {
+      "property_type": null,
+      "location": null,
+      "budget": null,
+      "rooms": null,
+      "bathrooms": null,
+      "urgency": null,
+      "current_situation": null
+    },
+    "reasoning": "Usuario se presenta con nombre completo sin expresar necesidad específica"
+  },
+
+  "extraction_support_intent": {
+    "nombre": null,
+    "intent": "support",
+    "confidence": 0.88,
+    "entities": {
+      "property_type": null,
+      "location": null,
+      "budget": null,
+      "rooms": null,
+      "bathrooms": null,
+      "urgency": null,
+      "current_situation": null
+    },
+    "reasoning": "Mensaje indica problema técnico, requiere soporte administrativo"
+  },
+
+  "extraction_property_detailed": {
+    "nombre": "Andrés",
+    "intent": "property_search",
+    "confidence": 0.93,
+    "entities": {
+      "property_type": "casa",
+      "location": "Envigado",
+      "budget": 3500000,
+      "rooms": 3,
+      "bathrooms": 2,
+      "urgency": "marzo 2026",
+      "current_situation": null
+    },
+    "reasoning": "Búsqueda detallada con múltiples características específicas y timeframe definido"
+  },
+
+  "extraction_job_search": {
+    "nombre": "Laura",
+    "intent": "job",
+    "confidence": 0.90,
+    "entities": {
+      "property_type": null,
+      "location": null,
+      "budget": null,
+      "rooms": null,
+      "bathrooms": null,
+      "urgency": null,
+      "current_situation": null
+    },
+    "reasoning": "Usuario busca oportunidad laboral, no inmueble"
+  },
+
+  "extraction_call_request": {
+    "nombre": null,
+    "intent": "call_request",
+    "confidence": 0.85,
+    "entities": {
+      "property_type": null,
+      "location": null,
+      "budget": null,
+      "rooms": null,
+      "bathrooms": null,
+      "urgency": null,
+      "current_situation": null
+    },
+    "reasoning": "Usuario solicita explícitamente comunicación telefónica"
+  },
+
+  "extraction_unclear": {
+    "nombre": null,
+    "intent": "unclear",
+    "confidence": 0.45,
+    "entities": {
+      "property_type": null,
+      "location": null,
+      "budget": null,
+      "rooms": null,
+      "bathrooms": null,
+      "urgency": null,
+      "current_situation": null
+    },
+    "reasoning": "Mensaje muy breve sin información suficiente para clasificar intención"
+  },
+
+  "extraction_with_current_contract": {
+    "nombre": "Roberto",
+    "intent": "property_search",
+    "confidence": 0.87,
+    "entities": {
+      "property_type": "apartamento",
+      "location": "Sabaneta",
+      "budget": null,
+      "rooms": null,
+      "bathrooms": null,
+      "urgency": "1-3 meses",
+      "current_situation": "tengo contrato vigente con otra inmobiliaria"
+    },
+    "reasoning": "Búsqueda de apartamento con situación contractual actual mencionada"
+  },
+
+  "extraction_urgent_search": {
+    "nombre": null,
+    "intent": "property_search",
+    "confidence": 0.82,
+    "entities": {
+      "property_type": "apartamento",
+      "location": null,
+      "budget": 1500000,
+      "rooms": 1,
+      "bathrooms": null,
+      "urgency": "urgente",
+      "current_situation": null
+    },
+    "reasoning": "Búsqueda con urgencia explícita y características básicas"
+  },
+
+  "extraction_payment_support": {
+    "nombre": null,
+    "intent": "support",
+    "confidence": 0.91,
+    "entities": {
+      "property_type": null,
+      "location": null,
+      "budget": null,
+      "rooms": null,
+      "bathrooms": null,
+      "urgency": null,
+      "current_situation": null
+    },
+    "reasoning": "Consulta sobre pagos y facturación, requiere redirección a contabilidad"
+  },
+
+  "extraction_maintenance_support": {
+    "nombre": null,
+    "intent": "support",
+    "confidence": 0.89,
+    "entities": {
+      "property_type": null,
+      "location": null,
+      "budget": null,
+      "rooms": null,
+      "bathrooms": null,
+      "urgency": null,
+      "current_situation": null
+    },
+    "reasoning": "Reporte de problema de mantenimiento, requiere redirección a área técnica"
+  }
+}

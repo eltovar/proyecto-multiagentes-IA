@@ -1,4 +1,4 @@
-
+#determina el agente adecuado según el estado de la conversación
 import time
 from typing import Dict, Any, Optional
 from app.agents.reception_agent import ReceptionAgent
@@ -12,12 +12,12 @@ class AgentOrchestrator:
 
     def __init__(self):
         self.agents: Dict[str, BaseAgent] = {
-            "ReceptionAgent": ReceptionAgent(),
             "SupportAgent": SupportAgent(),
+            "ReceptionAgent": ReceptionAgent(),
             "LeadsalesAgent": LeadsalesAgent()
         }
 
-        self.agent_priority = ["ReceptionAgent", "SupportAgent", "LeadsalesAgent"]
+        self.agent_priority = ["supportAgent", "ReceptionAgent", "LeadsalesAgent"]
         self.initialized = True
 
         self.log_action("Orquestador inicializado", f"Agentes disponibles: {list(self.agents.keys())}")
@@ -79,7 +79,7 @@ class AgentOrchestrator:
     async def _handle_agent_transfer(self, message_data: Dict[str, Any],
                                     conversation: Dict[str, Any], target_agent_name: str,
                                     transfer_metadata: Dict[str, Any] = None) -> None:
-        """Transferencia robusta entre agentes con metadata"""
+        """Transferencia robusta entre agentes con metadata ermitiendo actualizar tanto el estado como los datos de la conversación, o solo los datos"""
 
         self.log_action("Transferencia de agente", f"Hacia: {target_agent_name}")
 
@@ -87,7 +87,7 @@ class AgentOrchestrator:
             self.log_action("Error", f"Agente {target_agent_name} no existe")
             return
 
-        # PASO 1: Actualizar metadata de transferencia en conversación
+        # Actualizar metadata de transferencia en conversación
         sender_id = message_data["from"]
         transfer_data = {
             "current_agent": target_agent_name,
@@ -95,11 +95,11 @@ class AgentOrchestrator:
             "last_transfer_time": time.time()
         }
 
-        # PASO 2: Persistir cambios ANTES de transferir
+        #Persistir cambios ANTES de transferir
         from app.state.manager import state_manager
         state_manager.update_conversation_state(sender_id, **transfer_data)
 
-        # PASO 3: Obtener conversación actualizada
+        # Obtener conversación actualizada
         updated_conversation = state_manager.get_conversation(sender_id)
         conversation_dict = {
             "whatsapp_id": updated_conversation.whatsapp_id,
@@ -110,13 +110,13 @@ class AgentOrchestrator:
             "transfer_metadata": getattr(updated_conversation, 'transfer_metadata', {})
         }
 
-        # PASO 4: Procesar con target agent usando conversación actualizada
+        # Procesar con target agent usando conversación actualizada
         target_agent = self.agents[target_agent_name]
 
         try:
             result = await target_agent.process_message(message_data, conversation_dict)
 
-            # PASO 5: Enviar respuesta y actualizar estado
+            #  Enviar respuesta y actualizar estado
             await send_message(sender_id, result["response"])
             await self._update_conversation_state(sender_id, result)
 
@@ -158,6 +158,7 @@ class AgentOrchestrator:
                 self.log_action("Conversación creada con datos", f"Updates: {list(data_updates.keys())}")
 
     async def _send_error_message(self, sender_id: str) -> None:
+
         error_msg = ("Disculpa, hay un problema técnico temporal. "
                     "Un asesor se comunicará contigo muy pronto. ¡Gracias por tu paciencia!")
         await send_message(sender_id, error_msg)

@@ -1,7 +1,6 @@
-'''
-    Aplicacion FASTAPI para el agente IA multiagentes.
-    Punto de entrada HTTP para webhooks de WhatsApp y endpoints de salud.
-'''
+''' Aplicacion FASTAPI para el agente IA multiagentes.
+    Punto de entrada HTTP para webhooks de WhatsApp y endpoints de salud. '''
+
 from fastapi import FastAPI, Request, Response, HTTPException
 from app.core.processor import process_message
 from app.config import settings

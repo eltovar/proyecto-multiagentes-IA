@@ -1,6 +1,7 @@
 """
 StateManager Coordinador: Interface principal para gestión de estado.
 Coordina entre módulos especializados: CRUD, Transitions, Queries.
+acade central para gestionar, leer y actualizar el estado persistente de las conversaciones
 """
 
 from typing import Optional, Dict, Any
@@ -35,6 +36,7 @@ class StateManager:
         else:
             return self.crud.update_conversation_data(whatsapp_id, data)
 
+    #verifican si la conversación ha sido transferida a un humano 
     def update_with_validation(self, whatsapp_id: str, state: str, data: Dict[str, Any]) -> bool:
         if self.transitions.is_conversation_transferred(whatsapp_id):
             print(f"[StateManager] Handoff activo - operación bloqueada para {whatsapp_id}")
