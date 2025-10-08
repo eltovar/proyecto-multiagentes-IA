@@ -15,14 +15,26 @@ from app.config import (
 
 class LeadsalesAgent(BaseAgent):
 
-    def __init__(self):
-        super().__init__("LeadsalesAgent")
+    def __init__(self, llm_service=None, state_manager=None, leadsales_service=None):
+        """
+        Constructor con Dependency Injection.
 
-        # Inicializar servicios
-        self.leadsales_service = LeadsalesService()
-        self.leadsales_service.initialize()
+        Args:
+            llm_service: Servicio LLM inyectado (opcional)
+            state_manager: State Manager inyectado (opcional)
+            leadsales_service: Servicio Leadsales inyectado (opcional)
+        """
+        super().__init__("LeadsalesAgent", llm_service=llm_service, state_manager=state_manager)
 
-        if self.llm_service and not self.llm_service.api_client.initialized:
+        # ✅ Usar Leadsales Service inyectado o crear nuevo (backward compatibility)
+        if leadsales_service:
+            self.leadsales_service = leadsales_service
+        else:
+            self.leadsales_service = LeadsalesService()
+            self.leadsales_service.initialize()
+
+        # ✅ Inicializar LLM solo si necesario
+        if self.llm_service and hasattr(self.llm_service, 'api_client') and not self.llm_service.api_client.initialized:
             self.llm_service.initialize()
 
         # Inicializar componentes con dependency injection

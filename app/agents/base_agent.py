@@ -1,25 +1,80 @@
 '''
     Clase base para todos los agentes.
     Define interfaz comun, loggin, estructura de respuesta y manejo de estado.
+
+    🔥 DEPENDENCY INJECTION:
+    - Los servicios (llm_service, state_manager) se inyectan en lugar de importarse globalmente
+    - Esto permite Hot Reload correcto al recargar agentes
+    - Backward compatible: Si no se inyectan, usa None (agentes legacy)
 '''
 
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
-from app.state.manager import state_manager
 
-# Import condicional para evitar errores
-try:
-    from app.services.llm_service import llm_service
-except ImportError:
-    llm_service = None
+# ❌ REMOVIDO: Imports globales de singletons
+# Se reemplaza con Dependency Injection
 
 class BaseAgent(ABC):
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, llm_service=None, state_manager=None):
+        """
+        Inicializa BaseAgent con Dependency Injection.
+
+        Args:
+            name: Nombre del agente
+            llm_service: Servicio LLM inyectado (opcional para backward compatibility)
+            state_manager: State Manager inyectado (opcional para backward compatibility)
+        """
         self.name = name
         self.agent_name = name  # Compatibilidad con código existente
-        self.llm_service = llm_service #Cualquier agente puede usar el LLM
+
+        # Dependency Injection con fallback para backward compatibility
+        self._llm_service = llm_service
+        self._state_manager = state_manager
+
         self.initialized = True
+
+    @property
+    def llm_service(self):
+        """
+        Lazy loading de llm_service.
+        Prioridad: inyectado > global import
+        """
+        if self._llm_service is not None:
+            return self._llm_service
+
+        # Fallback: import global para backward compatibility
+        try:
+            from app.services.llm_service import llm_service
+            return llm_service
+        except ImportError:
+            return None
+
+    @llm_service.setter
+    def llm_service(self, value):
+        """Permite inyección de llm_service después de __init__"""
+        self._llm_service = value
+
+    @property
+    def state_manager(self):
+        """
+        Lazy loading de state_manager.
+        Prioridad: inyectado > global import
+        """
+        if self._state_manager is not None:
+            return self._state_manager
+
+        # Fallback: import global para backward compatibility
+        try:
+            from app.state.manager import state_manager
+            return state_manager
+        except ImportError:
+            return None
+
+    @state_manager.setter
+    def state_manager(self, value):
+        """Permite inyección de state_manager después de __init__"""
+        self._state_manager = value
 
     #orquestador decide ruteo
     @abstractmethod
@@ -75,7 +130,8 @@ class BaseAgent(ABC):
         return result
 
     def get_conversation_state(self, whatsapp_id: str) -> Dict[str, Any]:
-        conversation = state_manager.get_conversation(whatsapp_id)
+        """Usa state_manager inyectado o global"""
+        conversation = self.state_manager.get_conversation(whatsapp_id)
         if conversation:
             return {
                 "whatsapp_id": conversation.whatsapp_id,
@@ -88,8 +144,9 @@ class BaseAgent(ABC):
         return {}
 
     def update_conversation_state(self, whatsapp_id: str, updates: Dict[str, Any]):
+        """Usa state_manager inyectado o global"""
         try:
-            state_manager.update_conversation_state(
+            self.state_manager.update_conversation_state(
                 whatsapp_id=whatsapp_id,
                 **updates
             )

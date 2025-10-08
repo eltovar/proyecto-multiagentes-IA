@@ -18,19 +18,31 @@ class SupportAgent(BaseAgent):
     4. CAMINO 3: Info general → Respuesta RAG directa
     """
 
-    def __init__(self):
-        super().__init__("SupportAgent")
+    def __init__(self, llm_service=None, state_manager=None, rag_system=None):
+        """
+        Constructor con Dependency Injection.
 
-        # ✅ Reutilizar LLMService del singleton de BaseAgent (elimina duplicación)
+        Args:
+            llm_service: Servicio LLM inyectado (opcional)
+            state_manager: State Manager inyectado (opcional)
+            rag_system: Sistema RAG inyectado (opcional)
+        """
+        super().__init__("SupportAgent", llm_service=llm_service, state_manager=state_manager)
+
+        # ✅ Usar LLM inyectado o crear nuevo (backward compatibility)
         if not self.llm_service:
             self.llm_service = LLMService()
 
         # Inicializar LLM solo si necesario
-        if self.llm_service and not self.llm_service.api_client.initialized:
+        if self.llm_service and hasattr(self.llm_service, 'api_client') and not self.llm_service.api_client.initialized:
             self.llm_service.initialize()
 
-        # RAG system es singleton global
-        self.rag_system = rag_system
+        # ✅ Usar RAG inyectado o global (backward compatibility)
+        if rag_system:
+            self.rag_system = rag_system
+        else:
+            from app.rag.rag_system import rag_system as global_rag
+            self.rag_system = global_rag
 
         # Inicializar RAG solo si necesario
         if self.rag_system and not self.rag_system.initialized:

@@ -1,28 +1,41 @@
-#determina el agente adecuado según el estado de la conversación
+"""
+Orchestrator basado en Factory Pattern.
+Crea agentes fresh en cada request = hot reload automático.
+"""
+
 import time
 from typing import Dict, Any, Optional
-from app.agents.reception_agent import ReceptionAgent
-from app.agents.support_agent import SupportAgent
-from app.agents.leadsales_agent import LeadsalesAgent
-from app.agents.base_agent import BaseAgent
+from app.core.agent_factory import AgentFactoryRegistry
+from app.core.service_container import ServiceContainer
 from app.state.manager import get_conversation_state, update_conversation_state, STATE_TRANSFERIDO
 from app.services.whatsapp_service import send_message
 
-class AgentOrchestrator:
+
+class FactoryOrchestrator:
+    """
+    Orchestrator que usa Factory Pattern para crear agentes fresh.
+    No mantiene instancias de agentes en memoria → hot reload natural.
+    """
 
     def __init__(self):
-        self.agents: Dict[str, BaseAgent] = {
-            "SupportAgent": SupportAgent(),
-            "ReceptionAgent": ReceptionAgent(),
-            "LeadsalesAgent": LeadsalesAgent()
-        }
+        # Factory registry
+        self.factory_registry = AgentFactoryRegistry()
 
-        self.agent_priority = ["SupportAgent", "ReceptionAgent", "LeadsalesAgent"]  # ✅ FIX: supportAgent → SupportAgent
+        # Service container (servicios compartidos, NO se recargan)
+        self.service_container = ServiceContainer()
+
+        # Prioridad de agentes
+        self.agent_priority = ["SupportAgent", "ReceptionAgent", "LeadsalesAgent"]
+
         self.initialized = True
-
-        self.log_action("Orquestador inicializado", f"Agentes disponibles: {list(self.agents.keys())}")
+        self.log_action("FactoryOrchestrator inicializado",
+                       f"Factories: {list(self.factory_registry._factories.keys())}")
 
     async def process_message(self, message_data: Dict[str, Any]) -> None:
+        """
+        Procesa mensaje creando agente fresh para cada request.
+        = HOT RELOAD AUTOMÁTICO sin comandos ni watchdog.
+        """
         sender_id = message_data["from"]
         user_message = message_data["text"]["body"]
 
@@ -36,28 +49,28 @@ class AgentOrchestrator:
 
         # Verificar Handoff Protocol
         if conversation["state"] == STATE_TRANSFERIDO:
-            self.log_action("Conversación transferida", "Ignorando mensaje - Humano al mando")
+            self.log_action("Conversación transferida", "Ignorando - Humano al mando")
             return
 
-        # Seleccionar agente apropiado
+        # ✅ Seleccionar agente (crea instancia FRESH)
         selected_agent = await self._select_agent(message_data, conversation)
 
         if not selected_agent:
-            self.log_action("Error", "No se pudo seleccionar agente apropiado")
+            self.log_action("Error", "No se pudo seleccionar agente")
             await self._send_error_message(sender_id)
             return
 
         try:
-            # Procesar mensaje con agente seleccionado
+            # Procesar mensaje
             result = await selected_agent.process_message(message_data, conversation)
 
-            # CRÍTICO: Actualizar estado ANTES de procesar transferencia
+            # Actualizar estado ANTES de transferencia
             await self._update_conversation_state(sender_id, result)
 
             # Enviar respuesta
             await send_message(sender_id, result["response"])
 
-            # Manejar transferencia si es necesaria
+            # Manejar transferencia
             if result.get("transfer_to"):
                 transfer_metadata = result.get("transfer_metadata", {})
                 await self._handle_agent_transfer(message_data, conversation,
@@ -67,11 +80,20 @@ class AgentOrchestrator:
             self.log_action("Error procesando mensaje", str(e))
             await self._send_error_message(sender_id)
 
-    async def _select_agent(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> Optional[BaseAgent]:
+    async def _select_agent(self, message_data: Dict[str, Any], conversation: Dict[str, Any]):
+        """
+        Selecciona agente apropiado CREANDO INSTANCIA FRESH.
+        Esto hace que cada request use el código más reciente.
+        """
+        shared_services = self.service_container.get_all_services()
+
         for agent_name in self.agent_priority:
-            agent = self.agents[agent_name]
+            # ✅ Crear instancia FRESH del agente
+            agent = self.factory_registry.create_agent(agent_name, shared_services)
+
+            # Verificar si puede manejar
             if await agent.can_handle(message_data, conversation):
-                self.log_action("Agente seleccionado", agent_name)
+                self.log_action("Agente seleccionado (fresh)", agent_name)
                 return agent
 
         return None
@@ -79,15 +101,10 @@ class AgentOrchestrator:
     async def _handle_agent_transfer(self, message_data: Dict[str, Any],
                                     conversation: Dict[str, Any], target_agent_name: str,
                                     transfer_metadata: Dict[str, Any] = None) -> None:
-        """Transferencia robusta entre agentes con metadata ermitiendo actualizar tanto el estado como los datos de la conversación, o solo los datos"""
-
+        """Transferencia entre agentes (crea instancia fresh del target)"""
         self.log_action("Transferencia de agente", f"Hacia: {target_agent_name}")
 
-        if target_agent_name not in self.agents:
-            self.log_action("Error", f"Agente {target_agent_name} no existe")
-            return
-
-        # Actualizar metadata de transferencia en conversación
+        # Actualizar metadata de transferencia
         sender_id = message_data["from"]
         transfer_data = {
             "current_agent": target_agent_name,
@@ -95,7 +112,7 @@ class AgentOrchestrator:
             "last_transfer_time": time.time()
         }
 
-        #Persistir cambios ANTES de transferir
+        # Persistir cambios
         from app.state.manager import state_manager
         state_manager.update_conversation_state(sender_id, **transfer_data)
 
@@ -110,13 +127,13 @@ class AgentOrchestrator:
             "transfer_metadata": getattr(updated_conversation, 'transfer_metadata', {})
         }
 
-        # Procesar con target agent usando conversación actualizada
-        target_agent = self.agents[target_agent_name]
+        # ✅ Crear instancia FRESH del target agent
+        shared_services = self.service_container.get_all_services()
+        target_agent = self.factory_registry.create_agent(target_agent_name, shared_services)
 
         try:
             result = await target_agent.process_message(message_data, conversation_dict)
 
-            #  Enviar respuesta y actualizar estado
             await send_message(sender_id, result["response"])
             await self._update_conversation_state(sender_id, result)
 
@@ -126,13 +143,10 @@ class AgentOrchestrator:
 
     async def _update_conversation_state(self, sender_id: str, result: Dict[str, Any]) -> None:
         """Actualizar estado con validación robusta"""
-
-        # Validar si hay cambios de estado
         new_state = result.get("new_state")
         data_updates = result.get("data_updates", {})
 
         if new_state:
-            # Actualizar estado + datos
             update_conversation_state(
                 whatsapp_id=sender_id,
                 new_state=new_state,
@@ -140,13 +154,12 @@ class AgentOrchestrator:
             )
             self.log_action("Estado actualizado", f"Nuevo estado: {new_state}")
         elif data_updates:
-            # Solo actualizar datos, mantener estado actual
             from app.state.manager import state_manager
-            result = state_manager.update_conversation_state(
+            state_result = state_manager.update_conversation_state(
                 whatsapp_id=sender_id,
                 **data_updates
             )
-            if result:
+            if state_result:
                 self.log_action("Datos actualizados", f"Updates: {list(data_updates.keys())}")
             else:
                 # Si falla, intentar crear conversación nueva
@@ -158,19 +171,18 @@ class AgentOrchestrator:
                 self.log_action("Conversación creada con datos", f"Updates: {list(data_updates.keys())}")
 
     async def _send_error_message(self, sender_id: str) -> None:
-
         error_msg = ("Disculpa, hay un problema técnico temporal. "
-                    "Un asesor se comunicará contigo muy pronto. ¡Gracias por tu paciencia!")
+                    "Un asesor se comunicará contigo muy pronto.")
         await send_message(sender_id, error_msg)
 
     def log_action(self, action: str, details: str = ""):
-        print(f"[ORCHESTRATOR] {action}: {details}")
+        print(f"[FACTORY-ORCHESTRATOR] {action}: {details}")
 
     def health_check(self) -> Dict[str, Any]:
+        """Health check incluyendo servicios"""
         return {
             "status": "healthy",
-            "agents_count": len(self.agents),
-            "agents": list(self.agents.keys())
+            "orchestrator": "factory_based",
+            "factories_registered": len(self.factory_registry._factories),
+            "services": self.service_container.health_check()
         }
-
-orchestrator = AgentOrchestrator()

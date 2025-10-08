@@ -10,15 +10,17 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
     from tests.test_utils import simulate_whatsapp_message, print_welcome, handle_special_commands
-    from app.core.orchestrator import AgentOrchestrator
+    from app.core.factory_orchestrator import FactoryOrchestrator  # ← NUEVO: Factory Pattern
     from app.state.models import initialize_database
     from app.state.manager import state_manager, get_conversation_state
-    from app.agents.reception_agent import ReceptionAgent
     from app.config import settings
+
+    # ❌ REMOVIDO: from app.agents.reception_agent import ReceptionAgent
+    # ❌ REMOVIDO: from app.core.orchestrator import AgentOrchestrator
 
     # PASO 1: Activar LLM temporalmente
     settings.fixed_flow_mode = False
-    
+
     print(f"[SYSTEM] LLM Status: {'ACTIVO' if not settings.fixed_flow_mode else 'DESACTIVADO'}")
     print(f"[SYSTEM] Modelo: {settings.llm_model_name if not settings.fixed_flow_mode else 'N/A'}")
     
@@ -29,12 +31,12 @@ except ImportError as e:
 
 TEST_PHONE_NUMBER = "573123456789"
 
-async def process_user_message(message: str, orchestrator: AgentOrchestrator) -> None:
-    """Procesa mensaje del usuario y muestra respuesta"""
+async def process_user_message(message: str, orchestrator: FactoryOrchestrator) -> None:
+    """Procesa mensaje del usuario usando FactoryOrchestrator"""
     try:
         print(f"\n[Usuario] {message}")
 
-        # Formato WhatsApp correcto para orchestrator
+        # Formato WhatsApp correcto
         message_data = {
             "from": TEST_PHONE_NUMBER,
             "text": {
@@ -42,7 +44,7 @@ async def process_user_message(message: str, orchestrator: AgentOrchestrator) ->
             }
         }
 
-        # IMPORTANTE: Capturar respuesta antes que el orchestrator la envíe
+        # IMPORTANTE: Capturar conversación antes de procesar
         conversation_before = get_conversation_state(TEST_PHONE_NUMBER)
 
         # ✅ SOLUCIÓN: Crear conversación si no existe O resetear si está transferida
@@ -52,43 +54,62 @@ async def process_user_message(message: str, orchestrator: AgentOrchestrator) ->
             conversation_before = get_conversation_state(TEST_PHONE_NUMBER)
         elif conversation_before.get('state') == 'TRANSFERIDO':
             print(f"[RESET] Conversación transferida detectada, eliminando y creando nueva")
-            # Eliminar conversación transferida completamente
             from app.state.crud_operations import ConversationCRUD
             crud = ConversationCRUD()
             crud.delete_conversation(TEST_PHONE_NUMBER)
-            # Crear nueva conversación
             from app.state.manager import update_conversation_state
             update_conversation_state(TEST_PHONE_NUMBER, "NUEVO")
             conversation_before = get_conversation_state(TEST_PHONE_NUMBER)
 
-        # Usar ReceptionAgent directamente para obtener la respuesta
-        reception_agent = ReceptionAgent()
-        if await reception_agent.can_handle(message_data, conversation_before or {}):
-            # Obtener respuesta del agente
-            result = await reception_agent.process_message(message_data, conversation_before or {})
-            print(f"[Sofia] {result.get('response', 'Sin respuesta')}")
+        # 🔥 INTERCEPTAR send_message para capturar respuesta
+        captured_responses = []
 
-            # Actualizar estado manualmente como hace el orchestrator
-            if result.get('new_state'):
-                from app.state.manager import update_conversation_state
-                data_updates = result.get('data_updates', {})
-                update_conversation_state(TEST_PHONE_NUMBER, result['new_state'], data_updates)
-        else:
-            print("[Sofia] Estado no manejable por ReceptionAgent")
+        # Importar send_message original
+        from app.services.whatsapp_service import send_message as original_send_message
+
+        async def mock_send_message(to: str, text: str) -> bool:
+            """Mock que captura respuestas"""
+            captured_responses.append(text)
+            return True
+
+        # Monkey-patch temporal
+        import app.services.whatsapp_service
+        import app.core.factory_orchestrator
+        app.services.whatsapp_service.send_message = mock_send_message
+        app.core.factory_orchestrator.send_message = mock_send_message
+
+        try:
+            # 🔥 USAR FACTORY ORCHESTRATOR - Hot Reload automático
+            await orchestrator.process_message(message_data)
+
+            # Mostrar respuestas capturadas
+            if captured_responses:
+                for response in captured_responses:
+                    print(f"[Sofia] {response}")
+            else:
+                print("[Sofia] (Sin respuesta)")
+
+        finally:
+            # Restaurar send_message original
+            app.services.whatsapp_service.send_message = original_send_message
+            app.core.factory_orchestrator.send_message = original_send_message
 
         # Mostrar estado actual para debugging
         conversation_after = get_conversation_state(TEST_PHONE_NUMBER)
         if conversation_after:
             state = conversation_after.get('state', 'N/A')
             name = conversation_after.get('customer_name', 'N/A')
-            print(f"[DEBUG] Estado: {state}, Nombre: {name}")
+            current_agent = conversation_after.get('current_agent', 'N/A')
+            print(f"[DEBUG] Estado: {state}, Nombre: {name}, Agente: {current_agent}")
 
     except Exception as e:
         print(f"[ERROR] Error procesando mensaje: {e}")
+        import traceback
+        traceback.print_exc()
 
-async def initialize_system() -> AgentOrchestrator:
-    """Inicializa el sistema multiagentes"""
-    print("[SYSTEM] INFO Inicializando sistema...")
+async def initialize_system() -> FactoryOrchestrator:
+    """Inicializa el sistema con FactoryOrchestrator (Hot Reload enabled)"""
+    print("[SYSTEM] INFO Inicializando sistema con Hot Reload...")
 
     try:
         # AUTO-RESET: Limpiar conversaciones transferidas
@@ -104,19 +125,22 @@ async def initialize_system() -> AgentOrchestrator:
 
         # Inicializar base de datos
         initialize_database()
-        print("[SYSTEM] EMOJI Base de datos inicializada")
+        print("[SYSTEM] OK Base de datos inicializada")
 
-        # Crear orquestador
-        orchestrator = AgentOrchestrator()
+        # Crear FactoryOrchestrator (con Hot Reload)
+        orchestrator = FactoryOrchestrator()
         if not orchestrator.initialized:
-            raise Exception("Orquestador no se inicializo correctamente")
+            raise Exception("FactoryOrchestrator no se inicializo correctamente")
 
-        print("[SYSTEM] EMOJI Orquestador inicializado")
-        print("[SYSTEM] EMOJI Sistema listo")
+        print("[SYSTEM] OK FactoryOrchestrator inicializado")
+        print("[SYSTEM] OK Hot Reload ACTIVO")
+        print("[SYSTEM] OK Sistema listo")
         return orchestrator
 
     except Exception as e:
         print(f"[SYSTEM] ERROR Error inicializando: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 async def chat_loop():

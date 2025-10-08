@@ -23,10 +23,15 @@ class ReceptionAgent(BaseAgent):
     de datos iniciales del cliente. Ahora usa LLM para extracción de nombre
     e intenciones y maneja la validación de horarios.
     """
-    def __init__(self):
-        """Constructor: Inicializa el servicio LLM y las constantes de negocio."""
-        super().__init__("reception")
-        # Nota: self.interaction_count eliminado, se obtiene de la conversación
+    def __init__(self, llm_service=None, state_manager=None):
+        """
+        Constructor con Dependency Injection.
+
+        Args:
+            llm_service: Servicio LLM inyectado (opcional)
+            state_manager: State Manager inyectado (opcional)
+        """
+        super().__init__("reception", llm_service=llm_service, state_manager=state_manager)
 
         # Links obligatorios para el flujo
         self.youtube_link = "https://www.youtube.com/watch?v=xyz"
@@ -34,9 +39,13 @@ class ReceptionAgent(BaseAgent):
         self.politicas_link = "https://inmobiliariaproteger.com/main-contenido-cat-6.htm"
         self.whatsapp_oficial = "324 551 6105"
 
-        # Inicializar LLM Service para extracción de intenciones y entidades
-        self.llm_service = LLMService()
-        self.llm_service.initialize()
+        # ✅ Usar LLM inyectado o crear nuevo (backward compatibility)
+        if not self.llm_service:
+            self.llm_service = LLMService()
+
+        # Inicializar solo si es necesario
+        if hasattr(self.llm_service, 'api_client') and not self.llm_service.api_client.initialized:
+            self.llm_service.initialize()
 
     async def can_handle(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> bool:
         """El ReceptionAgent maneja todos los estados del flujo obligatorio"""
