@@ -164,7 +164,3 @@ async def test_chat_local_process_message_captures_response(cleanup_test_convers
 
     # Verificar que hay output de Sofia
     assert "[Sofia]" in output_text or "[Asistente]" in output_text
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])

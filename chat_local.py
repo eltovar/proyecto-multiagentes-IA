@@ -2,8 +2,10 @@
 """Sistema de Chat Local para Testing - Refactorizado (~80 lineas)"""
 
 import asyncio
+import importlib
 import sys
 import os
+from unittest.mock import patch, Mock
 
 # Imports del sistema
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -13,7 +15,9 @@ try:
     from app.core.factory_orchestrator import FactoryOrchestrator  # ← NUEVO: Factory Pattern
     from app.state.models import initialize_database
     from app.state.manager import state_manager, get_conversation_state
-    from app.config import settings
+    from app.config import settings, ENABLE_HOT_RELOAD
+    from app.config import ENABLE_HOT_RELOAD
+
 
     # ❌ REMOVIDO: from app.agents.reception_agent import ReceptionAgent
     # ❌ REMOVIDO: from app.core.orchestrator import AgentOrchestrator
@@ -193,3 +197,19 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
+
+def start_chat():
+    """Función principal para iniciar el sistema de chat"""
+    print("Iniciando el sistema de chat...")
+    # Aquí iría la lógica para iniciar el sistema
+
+def reload_and_run():
+    """Recarga el módulo y reinicia el bucle de chat"""
+    importlib.reload(sys.modules[__name__])  # Recarga el módulo actual
+    start_chat()
+
+if __name__ == "__main__":
+    if ENABLE_HOT_RELOAD:
+        reload_and_run()
+    else:
+        start_chat()

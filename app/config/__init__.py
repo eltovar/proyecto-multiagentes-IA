@@ -1,15 +1,3 @@
-"""
-Configuration Module - Configuraciones del Sistema
-=================================================
-
-VERSION: 1.0.0 (PR #1 - Business Hours)
-
-NOTA: Este módulo re-exporta constantes de app.config.py para compatibilidad
-cuando se usa import app.config.business_hours
-"""
-
-# Re-exportar constantes de estados desde app/config.py padre
-# (necesario porque existe conflicto entre app/config.py y app/config/)
 import sys
 import os
 
@@ -111,3 +99,5 @@ __all__ = [
     "VALID_STATES",
     "DEPARTMENT_CONTACTS"
 ]
+
+ENABLE_HOT_RELOAD = True  # O False, dependiendo de la configuración deseada

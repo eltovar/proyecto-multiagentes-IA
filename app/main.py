@@ -68,3 +68,8 @@ def agents_status():
             "LeadsalesAgent": "active"
         }
     }
+    
+def start_chat():
+    """Función principal para iniciar el sistema de chat."""
+    print("Iniciando el sistema de chat...")
+    # Lógica para inicializar el sistema

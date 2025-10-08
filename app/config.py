@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
 import os
+from pydantic import ConfigDict
 
 class Settings(BaseSettings): #Hereda de baseSetting para configuraciones automaticas de .env
     
@@ -49,6 +50,8 @@ class Settings(BaseSettings): #Hereda de baseSetting para configuraciones automa
         env_file_encoding = "utf-8"
         case_sensitive = False
 
+
+ENABLE_HOT_RELOAD = True
 # Estados validos de conversacion - Refactorizado para flujo obligatorio
 STATE_NUEVO = "NUEVO"
 STATE_POLITICAS_PRESENTADAS = "POLITICAS_PRESENTADAS"
