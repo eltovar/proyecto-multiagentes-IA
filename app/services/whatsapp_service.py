@@ -1,25 +1,16 @@
 '''
 Integracion con Whatsapp Business API.
 Manejo de envios y recepcion de mensajes.
-
+Servicio externo.
 '''
 
 import asyncio
 from typing import Dict, Any
-from app.utils.error_logger import log_error, log_info
+from app.monitoring.logger import get_logger
+
+logger = get_logger(__name__)
 
 async def send_message(to: str, message: str, message_type: str = "text") -> bool:
-    """
-    Envía mensaje por WhatsApp Business API.
-
-    Args:
-        to: Número de teléfono destino
-        message: Contenido del mensaje
-        message_type: Tipo de mensaje (text, template, etc.)
-
-    Returns:
-        bool: True si el envío fue exitoso
-    """
     try:
         # TODO: Implementar envío real a WhatsApp API
         print(f"[WhatsApp] Enviando mensaje a {to}: {message[:50]}...")
@@ -29,26 +20,18 @@ async def send_message(to: str, message: str, message_type: str = "text") -> boo
         return True
 
     except Exception as e:
-        log_error("WhatsApp", "Error enviando mensaje", e)
+        logger.error("Error enviando mensaje", exc_info=e)
         return False
 
 def validate_webhook_signature(signature: str, payload: str) -> bool:
-    """
-    Valida la firma del webhook de WhatsApp.
-
-    Args:
-        signature: Firma del webhook
-        payload: Contenido del webhook
-
-    Returns:
-        bool: True si la firma es válida
-    """
+    
+    #validación de firma del webhook (si aplica)
     # TODO: Implementar validación real
+    
     return True
 
 class WhatsAppService:
     """Servicio principal para integración con WhatsApp Business API."""
-
     def __init__(self):
         self.initialized = False
 
@@ -57,10 +40,10 @@ class WhatsAppService:
         try:
             # TODO: Configurar cliente API real
             self.initialized = True
-            log_info("WhatsApp", "Servicio inicializado")
+            logger.info("Servicio inicializado")
             return True
         except Exception as e:
-            log_error("WhatsApp", "Error inicializando", e)
+            logger.error("Error inicializando servicio", exc_info=e)
             return False
 
     async def send_text_message(self, to: str, text: str) -> bool:

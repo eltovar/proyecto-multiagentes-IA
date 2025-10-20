@@ -7,9 +7,17 @@ Migrado a OpenAI para mejor integración RAG con system/user prompts.
 import json
 from typing import List, Optional
 from app.config import settings
-from app.utils.error_logger import log_error, log_info
+from app.monitoring.logger import get_logger
+from app.prompts.generator_prompts import (
+    GENERATE_CONTEXTUAL_RESPONSE_SYSTEM,
+    GENERATE_CONTEXTUAL_RESPONSE_USER,
+    GENERATE_FOLLOWUP_SYSTEM,
+    GENERATE_FOLLOWUP_USER
+)
 
-class LLMGenerator:
+logger = get_logger(__name__)
+
+class LLMGenerator: #Generacion de respuestas con RAG
 
     def __init__(self, api_client):
         self.client = api_client
@@ -24,30 +32,8 @@ class LLMGenerator:
             return "Lo siento, el servicio no está disponible en este momento."
 
         try:
-            # System prompt especializado para SupportAgent
-            system_prompt = f"""Eres el SupportAgent (Sofia) de "Inmobiliaria Proteger". Tu misión es proporcionar respuestas precisas y contextuales a consultas informativas.
-
-CONTEXTO RAG DISPONIBLE:
-{context}
-
-PERSONALIDAD: Profesional, concisa y orientadora. Usa un tono de experto.
-
-INSTRUCCIONES ESTRICTAS:
-- CONTEXTO RAG: Utiliza exclusivamente el texto proporcionado por el sistema RAG para formular tu respuesta
-- Si el contexto RAG responde a la pregunta, sé directo y preciso
-- REDIRECCIÓN ADMINISTRATIVA: Si el usuario pregunta por temas fuera del RAG:
-  * Pagos/Facturas/Cartera: "Claro, puedes comunicarte con el área de Cartera. [Proporciona el número o link correspondiente de la base de conocimiento]."
-  * Reparaciones/Mantenimiento (inquilinos existentes): "Por supuesto, puedes escribir al área de Mantenimiento para que gestionen tu solicitud."
-  * General: Si no encaja, "Con mucho gusto paso tu información a nuestro equipo para ver cuál es la mejor manera de ayudarte."
-
-PROHIBICIONES INQUEBRANTABLES:
-- NUNCA des información detallada sobre precios, ubicaciones o características de inmuebles
-- Si te preguntan sobre inmuebles específicos, responde ÚNICAMENTE: "Esa información detallada la maneja directamente nuestro equipo de asesores. Ellos se pondrán en contacto contigo muy pronto para resolver todas tus dudas."
-- NUNCA te identifiques como una IA
-
-FORMATO DE RESPUESTA: Directa, profesional y sin saludos innecesarios."""
-
-            user_prompt = f"Pregunta del cliente: {user_question}"
+            system_prompt = GENERATE_CONTEXTUAL_RESPONSE_SYSTEM.format(rag_context=context)
+            user_prompt = GENERATE_CONTEXTUAL_RESPONSE_USER.format(user_question=user_question)
 
             response = await self.client.client.chat.completions.create(
                 model=settings.llm_model_name,
@@ -68,7 +54,7 @@ FORMATO DE RESPUESTA: Directa, profesional y sin saludos innecesarios."""
             return generated_response
 
         except Exception as e:
-            log_error("LLMGenerator", "Error generando respuesta", e)
+            logger.error("Error generando respuesta", exc_info=e)
             customer_greeting = f", {customer_name}" if customer_name else ""
             return f"Lo siento{customer_greeting}, ocurrió un error procesando tu consulta. Un especialista se pondrá en contacto contigo pronto."
 
@@ -80,19 +66,8 @@ FORMATO DE RESPUESTA: Directa, profesional y sin saludos innecesarios."""
             response = await self.client.client.chat.completions.create(
                 model=settings.llm_model_name,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "Genera 3 preguntas de seguimiento relevantes basadas en la conversación. Responde SOLO con un JSON array válido."
-                    },
-                    {
-                        "role": "user",
-                        "content": f"""Basado en esta conversación, genera 3 preguntas de seguimiento:
-
-PREGUNTA ORIGINAL: "{question}"
-RESPUESTA DADA: "{response}"
-
-Formato: ["pregunta 1", "pregunta 2", "pregunta 3"]"""
-                    }
+                    {"role": "system", "content": GENERATE_FOLLOWUP_SYSTEM},
+                    {"role": "user", "content": GENERATE_FOLLOWUP_USER.format(question=question, response=response)}
                 ],
                 response_format={"type": "json_object"},  # Garantiza JSON válido
                 temperature=0.7,
@@ -109,7 +84,7 @@ Formato: ["pregunta 1", "pregunta 2", "pregunta 3"]"""
                 return []
 
         except Exception as e:
-            log_error("LLMGenerator", "Error generando follow-ups", e)
+            logger.error("Error generando follow-ups", exc_info=e)
             return []
 
     def generate_greeting_message(self, user_name: str) -> str:
@@ -120,24 +95,3 @@ Formato: ["pregunta 1", "pregunta 2", "pregunta 3"]"""
         ]
         import random
         return random.choice(greetings)
-
-    def _build_response_prompt(self, user_question: str, context: str, customer_name: Optional[str] = None) -> str:
-        customer_greeting = f", {customer_name}" if customer_name else ""
-
-        return f"""
-        Eres un asistente virtual experto y amigable. Responde a la pregunta del usuario usando SOLO la información del contexto proporcionado.
-
-        CONTEXTO DISPONIBLE:
-        {context}
-
-        PREGUNTA DEL USUARIO: "{user_question}"
-
-        INSTRUCCIONES:
-        - Responde de manera clara y concisa
-        - Usa SOLO información del contexto
-        - Si el contexto no contiene la información, di que no tienes esa información específica
-        - Mantén un tono profesional pero amigable
-        - Al final, pregunta si necesita algo más
-
-        RESPUESTA:
-        """

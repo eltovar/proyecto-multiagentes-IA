@@ -128,6 +128,11 @@ class TestTriPathWithFactory:
         ]
 
         for test_case in test_cases:
+            # Limpiar estado entre test cases para evitar interferencia del Handoff Protocol
+            from app.state.crud_operations import ConversationCRUD
+            crud = ConversationCRUD()
+            crud.delete_conversation(user_id)
+
             with patch('app.core.factory_orchestrator.send_message', new_callable=AsyncMock) as mock_send:
                 mock_send.return_value = True
 

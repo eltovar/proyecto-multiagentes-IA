@@ -5,7 +5,7 @@ Core responsibilities: State routing and handler delegation
 
 from typing import Dict, Any
 from .base_agent import BaseAgent
-from app.services.leadsales_service import LeadsalesService
+from app.services.leadsales import LeadsalesService
 from app.agents.leadsales.analyzers import ResponseGenerator
 from app.agents.leadsales.handlers import EngagementHandler, CaptureHandler, CRMHandler
 from app.config import (

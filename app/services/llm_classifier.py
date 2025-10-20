@@ -1,13 +1,20 @@
 """
-LLM Classifier: Clasificación de intenciones y análisis de mensajes.
-Responsable de determinar el tipo de consulta y analizar mensajes de usuarios.
-Migrado a OpenAI con formato JSON robusto para mayor precisión.
+Clasificacion de intenciones usando LLM
 """
+
 
 import json
 from typing import Dict, Any
 from app.config import settings
-from app.utils.error_logger import log_error, log_info
+from app.monitoring.logger import get_logger
+from app.prompts.classifier_prompts import (
+    CLASSIFY_INTENTION_SYSTEM,
+    CLASSIFY_INTENTION_USER,
+    ANALYZE_SENTIMENT_SYSTEM,
+    ANALYZE_SENTIMENT_USER
+)
+
+logger = get_logger(__name__)
 
 class LLMClassifier:
 
@@ -16,17 +23,15 @@ class LLMClassifier:
 
     async def classify_intention(self, message: str) -> Dict[str, Any]:
         if not self.client.initialized:
-            log_error("LLMClassifier", "Cliente no inicializado")
+            logger.error("Cliente no inicializado")
             return {"type": "error", "confidence": 0.0}
-
-        prompt = self._build_classification_prompt(message)
 
         try:
             response = await self.client.client.chat.completions.create(
                 model=settings.llm_model_name,
                 messages=[
-                    {"role": "system", "content": "Eres un clasificador experto de intenciones de clientes inmobiliarios. Responde SIEMPRE en formato JSON válido."},
-                    {"role": "user", "content": prompt}
+                    {"role": "system", "content": CLASSIFY_INTENTION_SYSTEM},
+                    {"role": "user", "content": CLASSIFY_INTENTION_USER.format(message=message)}
                 ],
                 response_format={"type": "json_object"},  # CRÍTICO: Garantiza JSON válido
                 temperature=0.3,
@@ -39,30 +44,19 @@ class LLMClassifier:
             return result
 
         except Exception as e:
-            log_error("LLMClassifier", "Error clasificando intención", e)
+            logger.error("Error clasificando intención", exc_info=e)
             return {"type": "error", "confidence": 0.0, "reasoning": str(e)}
 
     async def analyze_message_sentiment(self, message: str) -> str:
         if not self.client.initialized:
             return "neutral"
 
-        prompt = f"""
-        Analiza el sentimiento del siguiente mensaje y responde solo con una palabra:
-        - "positivo": Si el mensaje es amigable, agradecido o entusiasta
-        - "negativo": Si el mensaje es hostil, quejoso o frustrado
-        - "neutral": Si el mensaje es informativo o neutro
-
-        MENSAJE: "{message}"
-
-        Respuesta (solo una palabra):
-        """
-
         try:
             response = await self.client.client.chat.completions.create(
                 model=settings.llm_model_name,
                 messages=[
-                    {"role": "system", "content": "Analiza sentimientos. Responde solo: positivo, negativo o neutral."},
-                    {"role": "user", "content": prompt}
+                    {"role": "system", "content": ANALYZE_SENTIMENT_SYSTEM},
+                    {"role": "user", "content": ANALYZE_SENTIMENT_USER.format(message=message)}
                 ],
                 temperature=0.1,
                 max_tokens=10
@@ -79,19 +73,3 @@ class LLMClassifier:
 
         spanish_score = sum(1 for indicator in spanish_indicators if indicator in message_lower)
         return "spanish" if spanish_score > 0 else "unknown"
-
-    def _build_classification_prompt(self, message: str) -> str:
-        return f"""
-        Clasifica el siguiente mensaje del usuario en una de estas categorías:
-
-        CATEGORÍAS:
-        - "question": El usuario hace una pregunta o busca información
-        - "need": El usuario expresa una necesidad, quiere contratar o comprar algo
-        - "greeting": Solo es un saludo sin intención clara
-        - "unclear": El mensaje no es claro o no encaja en las otras categorías
-
-        MENSAJE: "{message}"
-
-        Responde SOLO con un JSON en este formato:
-        {{"type": "categoria", "confidence": 0.8, "reasoning": "breve explicacion"}}
-        """

@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 from typing import Dict, Any
 from app.monitoring.metrics import performance_monitor
-from app.core.orchestrator import orchestrator
+from app.core.factory_orchestrator import FactoryOrchestrator
 
 class MonitoringDashboard:
     """Dashboard básico de monitoreo del sistema"""
@@ -26,7 +26,7 @@ class MonitoringDashboard:
 
     def _get_system_health(self) -> Dict[str, Any]:
         """Obtiene salud general del sistema"""
-        orchestrator_health = orchestrator.health_check()
+        orchestrator_health = FactoryOrchestrator.health_check()
         dashboard_data = self.monitor.get_dashboard_data()
 
         return {

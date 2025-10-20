@@ -1,0 +1,1 @@
+'''Test unicatarios para scoring strategies'''

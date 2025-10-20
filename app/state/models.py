@@ -1,3 +1,4 @@
+#Definicion de tablas
 import sqlite3
 import os
 from datetime import datetime
@@ -8,7 +9,6 @@ class ConversationState:
     """
    ConversationState que representa el estado de una conversación y contiene las funciones para inicializar y conectar a la base de datos SQLite
     """
-
     def __init__(
         self,
         whatsapp_id: str,

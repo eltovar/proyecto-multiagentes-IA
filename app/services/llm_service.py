@@ -1,3 +1,5 @@
+'''Servicio externo de LLM openai'''
+
 import openai
 import asyncio
 import json
@@ -6,9 +8,19 @@ from typing import Dict, Any, List, Optional
 from app.config import settings
 from .llm_classifier import LLMClassifier
 from .llm_generator import LLMGenerator
-from app.utils.error_logger import log_error, log_info
+from app.monitoring.logger import get_logger
+from app.prompts.llm_service_prompts import (
+    CLASSIFY_QUESTION_VS_NEED_SYSTEM,
+    CLASSIFY_QUESTION_VS_NEED_USER
+)
 
-class LLMAPIClient:
+logger = get_logger(__name__)
+
+class LLMAPIClient: #LLM Api Client
+    '''
+    -Inicializa cliente HTTP asíncrono de OpenAI
+    -Maneja autenticación con API key
+    -Singleton pattern para reutilización'''
 
     def __init__(self):
         self.client = None
@@ -20,13 +32,13 @@ class LLMAPIClient:
                 api_key=settings.openai_api_key
             )
             self.initialized = True
-            log_info("LLMService", "OpenAI API inicializada correctamente")
+            logger.info("OpenAI API inicializada correctamente")
             return True
         except Exception as e:
-            log_error("LLMService", "Error inicializando OpenAI API", e)
+            logger.error("Error inicializando OpenAI API", exc_info=e)
             return False
 
-class LLMService:
+class LLMService: #Orquestador y unificador de classifier + generator
 
     def __init__(self):
         self.api_client = LLMAPIClient()
@@ -91,8 +103,8 @@ class LLMService:
             response = await self.api_client.client.chat.completions.create(
                 model=settings.llm_model_name,
                 messages=[
-                    {"role": "system", "content": "Eres un clasificador preciso. Responde SOLO con 'pregunta' o 'necesidad'."},
-                    {"role": "user", "content": classification_prompt}
+                    {"role": "system", "content": CLASSIFY_QUESTION_VS_NEED_SYSTEM},
+                    {"role": "user", "content": CLASSIFY_QUESTION_VS_NEED_USER.format(message=classification_prompt)}
                 ],
                 temperature=0.1,
                 max_tokens=10
@@ -111,7 +123,7 @@ class LLMService:
                     return "necesidad"
 
         except Exception as e:
-            log_error("LLMService", "Error en classify_intent", e)
+            logger.error("Error en classify_intent", exc_info=e)
             return "necesidad"  # Fallback por defecto
 
     async def classify_with_prompt(
@@ -121,7 +133,7 @@ class LLMService:
     ) -> Dict[str, Any] | str:
        
         if not self.api_client.initialized:
-            log_error("LLMService", "API no inicializada en classify_with_prompt")
+            logger.error("API no inicializada en classify_with_prompt")
             raise RuntimeError("LLM API no inicializada")
 
         start_time = time.time()
@@ -160,31 +172,30 @@ class LLMService:
 
                 # Validar estructura mínima esperada
                 if "intent" not in result or "confidence" not in result:
-                    log_error("LLMService", f"Respuesta JSON incompleta: {content[:100]}")
+                    logger.error(f"Respuesta JSON incompleta: {content[:100]}")
                     raise ValueError("Respuesta LLM sin campos requeridos (intent, confidence)")
 
-                log_info(
-                    "LLMService",
+                logger.info(
                     f"classify_with_prompt: {duration_ms}ms | Intent: {result['intent']} | Confidence: {result.get('confidence', 0):.2f}"
                 )
 
                 return result
             else:
-                log_info("LLMService", f"classify_with_prompt (text): {duration_ms}ms")
+                logger.info(f"classify_with_prompt (text): {duration_ms}ms")
                 return content
 
         except asyncio.TimeoutError:
             duration_ms = int((time.time() - start_time) * 1000)
-            log_error("LLMService", f"Timeout después de {duration_ms}ms en classify_with_prompt")
+            logger.error(f"Timeout después de {duration_ms}ms en classify_with_prompt")
             raise
 
         except json.JSONDecodeError as e:
-            log_error("LLMService", f"JSON inválido de LLM: {content[:100]}", e)
+            logger.error(f"JSON inválido de LLM: {content[:100]}", exc_info=e)
             raise
 
         except Exception as e:
             duration_ms = int((time.time() - start_time) * 1000)
-            log_error("LLMService", f"Error en classify_with_prompt después de {duration_ms}ms", e)
+            logger.error(f"Error en classify_with_prompt después de {duration_ms}ms", exc_info=e)
             raise
 
     async def classify_intent_and_extract_entities(
@@ -194,7 +205,7 @@ class LLMService:
     ) -> Dict[str, Any]:
         
         if not self.api_client.initialized:
-            log_error("LLMService", "API no inicializada, usando fallback")
+            logger.error("API no inicializada, usando fallback")
             return self._fallback_classification(message)
 
         start_time = time.time()
@@ -240,30 +251,29 @@ class LLMService:
             duration_ms = int((time.time() - start_time) * 1000)
 
             # Logging estructurado
-            log_info(
-                "LLMService",
+            logger.info(
                 f"classify_intent_and_extract_entities: {duration_ms}ms | Intent: {result.get('intent')} | Confidence: {result.get('confidence'):.2f}"
             )
 
             # Validar estructura mínima
             if "intent" not in result or "confidence" not in result:
-                log_error("LLMService", "Respuesta LLM incompleta, usando fallback")
+                logger.error("Respuesta LLM incompleta, usando fallback")
                 return self._fallback_classification(message)
 
             return result
 
         except asyncio.TimeoutError:
             duration_ms = int((time.time() - start_time) * 1000)
-            log_error("LLMService", f"Timeout después de {duration_ms}ms, usando fallback")
+            logger.error(f"Timeout después de {duration_ms}ms, usando fallback")
             return self._fallback_classification(message)
 
         except json.JSONDecodeError as e:
-            log_error("LLMService", f"Error parseando JSON de LLM: {e}", e)
+            logger.error(f"Error parseando JSON de LLM: {e}", exc_info=e)
             return self._fallback_classification(message)
 
         except Exception as e:
             duration_ms = int((time.time() - start_time) * 1000)
-            log_error("LLMService", f"Error en classify_intent_and_extract_entities después de {duration_ms}ms", e)
+            logger.error(f"Error en classify_intent_and_extract_entities después de {duration_ms}ms", exc_info=e)
             return self._fallback_classification(message)
 
     def _fallback_classification(self, message: str) -> Dict[str, Any]:

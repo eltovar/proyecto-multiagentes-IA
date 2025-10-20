@@ -7,6 +7,14 @@ import importlib
 from typing import Dict, Any
 from abc import ABC, abstractmethod
 
+from app.agents.reception.handlers.greeting import GreetingHandler
+from app.agents.reception.handlers.contract import ContractHandler
+from app.agents.reception.handlers.lead_capture import LeadCaptureHandler
+from app.agents.reception.states.conversation import ConversationStateMachine
+
+# Imports para la nueva estructura de SupportAgent con pipeline
+from app.agents.support import SupportAgent
+
 
 class AgentFactory(ABC):
     """Factory base para creación de agentes"""
@@ -18,58 +26,83 @@ class AgentFactory(ABC):
 
 
 class ReceptionAgentFactory(AgentFactory):
-    """Factory para ReceptionAgent"""
+    """Factory para ReceptionAgent con nuevo diseño modular"""
 
     def create(self, shared_services: Dict[str, Any]):
-        # Recargar módulo para obtener última versión del código
-        module = importlib.import_module('app.agents.reception_agent')
-        importlib.reload(module)
+        # Obtener servicios compartidos
+        llm_service = shared_services.get('llm_service')
+        state_manager = shared_services.get('state_manager')
+        config = shared_services.get('config', {})
 
-        # Crear instancia fresh
+        # Crear componentes
+        state_machine = ConversationStateMachine()
+        greeting_handler = GreetingHandler(llm_service, state_manager, config)
+        contract_handler = ContractHandler(llm_service, state_manager, config)
+        lead_handler = LeadCaptureHandler(llm_service, state_manager, config)
+
+        # Recargar módulo para hot-reload
+        module = importlib.import_module('app.agents.reception.agent')
+        importlib.reload(module)
         agent_class = getattr(module, 'ReceptionAgent')
 
-        # ✅ Inyectar servicios en constructor
+        # Crear agente con todos sus componentes
         agent = agent_class(
-            llm_service=shared_services.get('llm_service'),
-            state_manager=shared_services.get('state_manager')
+            llm_service=llm_service,
+            state_manager=state_manager,
+            state_machine=state_machine,
+            handlers={
+                'greeting': greeting_handler,
+                'contract': contract_handler,
+                'lead': lead_handler
+            }
         )
 
         return agent
 
 
 class SupportAgentFactory(AgentFactory):
-    """Factory para SupportAgent"""
+    """Factory para SupportAgent con pipeline pattern"""
 
     def create(self, shared_services: Dict[str, Any]):
-        module = importlib.import_module('app.agents.support_agent')
-        importlib.reload(module)
+        # Obtener servicios compartidos
+        llm_service = shared_services.get('llm_service')
+        state_manager = shared_services.get('state_manager')
+        rag_system = shared_services.get('rag_system')
 
+        # Recargar módulo para hot-reload (pipeline pattern con nueva estructura)
+        module = importlib.import_module('app.agents.support.agent')
+        importlib.reload(module)
         agent_class = getattr(module, 'SupportAgent')
 
-        # ✅ Inyectar servicios en constructor
+        # Crear agente con pipeline pattern
         agent = agent_class(
-            llm_service=shared_services.get('llm_service'),
-            state_manager=shared_services.get('state_manager'),
-            rag_system=shared_services.get('rag_system')
+            llm_service=llm_service,
+            state_manager=state_manager,
+            rag_system=rag_system
         )
 
         return agent
 
 
 class LeadsalesAgentFactory(AgentFactory):
-    """Factory para LeadsalesAgent"""
+    """Factory para LeadsalesAgent (ya refactorizado)"""
 
     def create(self, shared_services: Dict[str, Any]):
+        # Obtener servicios compartidos
+        llm_service = shared_services.get('llm_service')
+        state_manager = shared_services.get('state_manager')
+        leadsales_service = shared_services.get('leadsales_service')
+
+        # Recargar módulo para hot-reload
         module = importlib.import_module('app.agents.leadsales_agent')
         importlib.reload(module)
-
         agent_class = getattr(module, 'LeadsalesAgent')
 
-        # ✅ Inyectar servicios en constructor
-        # Nota: leadsales_service NO se comparte (cada agente tiene el suyo)
+        # Crear agente con servicios inyectados
         agent = agent_class(
-            llm_service=shared_services.get('llm_service'),
-            state_manager=shared_services.get('state_manager')
+            llm_service=llm_service,
+            state_manager=state_manager,
+            leadsales_service=leadsales_service
         )
 
         return agent

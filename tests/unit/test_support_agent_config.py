@@ -11,11 +11,11 @@ import os
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from app.config import DEPARTMENT_CONTACTS
+from app.config import DEPARTMENT_CONTACTS, get_department_contacts, get_department_contact
 
 
 def test_department_contacts_structure():
-    """Verifica estructura de DEPARTMENT_CONTACTS"""
+    """Verifica estructura de DEPARTMENT_CONTACTS (backward compatibility)"""
     assert isinstance(DEPARTMENT_CONTACTS, dict)
     assert len(DEPARTMENT_CONTACTS) > 0
 
@@ -97,7 +97,8 @@ def test_support_agent_file_syntax():
         '../..',
         'app',
         'agents',
-        'support_agent.py'
+        'support',
+        'agent.py'
     )
 
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -105,31 +106,32 @@ def test_support_agent_file_syntax():
 
     # Try to compile
     try:
-        compile(code, 'support_agent.py', 'exec')
+        compile(code, 'agent.py', 'exec')
     except SyntaxError as e:
-        pytest.fail(f"Syntax error in support_agent.py: {e}")
+        pytest.fail(f"Syntax error in support/agent.py: {e}")
 
 
 def test_support_agent_imports():
-    """Verifica que imports necesarios están presentes"""
+    """Verifica que imports necesarios están presentes en el nuevo SupportAgent refactorizado"""
     file_path = os.path.join(
         os.path.dirname(__file__),
         '../..',
         'app',
         'agents',
-        'support_agent.py'
+        'support',
+        'agent.py'
     )
 
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
+    # Imports del nuevo SupportAgent con Pipeline Pattern
     required_imports = [
-        'from app.config import',
-        'DEPARTMENT_CONTACTS',
-        'from app.rag.rag_system import',  # Corrected import name
-        'from app.services.llm_service import',
-        'import json',
-        'import re',
+        'from app.agents.base_agent import BaseAgent',
+        'from app.core.pipeline import',
+        'from app.agents.support.pipeline_steps import',
+        'from app.agents.support.classifiers.intent import IntentClassifier',
+        'from app.agents.support.handlers',
     ]
 
     for imp in required_imports:
@@ -137,50 +139,54 @@ def test_support_agent_imports():
 
 
 def test_tripath_constants_defined():
-    """Verifica que constantes de tri-path están definidas"""
+    """Verifica que los 3 handlers del tri-path están definidos (PropertyHandler, DepartmentHandler, GeneralHandler)"""
     file_path = os.path.join(
         os.path.dirname(__file__),
         '../..',
         'app',
         'agents',
-        'support_agent.py'
+        'support',
+        'agent.py'
     )
 
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Should have routing path constants
-    paths = [
-        'CAMINO_1_INMUEBLE',
-        'CAMINO_2_DEPARTAMENTO',
-        'CAMINO_3_GENERAL'
+    # El nuevo SupportAgent usa handlers en lugar de constantes
+    # PropertyHandler → equivalente a CAMINO_1_INMUEBLE
+    # DepartmentHandler → equivalente a CAMINO_2_DEPARTAMENTO
+    # GeneralHandler → equivalente a CAMINO_3_GENERAL
+    handlers = [
+        'PropertyHandler',
+        'DepartmentHandler',
+        'GeneralHandler'
     ]
 
-    for path in paths:
-        assert path in content, f"Routing path '{path}' not found in code"
+    for handler in handlers:
+        assert handler in content, f"Handler '{handler}' not found in code"
 
 
 def test_gap_fixes_implemented():
-    """Verifica que GAP #1 y GAP #2 están implementados"""
+    """Verifica que Pipeline Pattern con RAG y routing están implementados"""
     file_path = os.path.join(
         os.path.dirname(__file__),
         '../..',
         'app',
         'agents',
-        'support_agent.py'
+        'support',
+        'agent.py'
     )
 
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # GAP #1: RAG context usage in CAMINO 1
-    assert 'rag_context' in content
-    assert 'classify_with_prompt' in content
-    assert 'response_format="text"' in content
-
-    # GAP #2: TRANSFERIDO state in CAMINO 2
-    assert 'new_state="TRANSFERIDO"' in content
-    assert 'handoff_reason' in content
+    # El nuevo SupportAgent usa Pipeline Pattern con steps específicos
+    # GAP #1: RAGSearchStep maneja búsqueda RAG (equivalente a rag_context)
+    # GAP #2: RoutingDecisionStep maneja routing y transferencias (equivalente a TRANSFERIDO/handoff_reason)
+    assert 'RAGSearchStep' in content, "RAGSearchStep (equivalente a GAP #1) no encontrado"
+    assert 'RoutingDecisionStep' in content, "RoutingDecisionStep (equivalente a GAP #2) no encontrado"
+    assert 'ResponseGeneratorStep' in content, "ResponseGeneratorStep no encontrado"
+    assert 'MessagePipeline' in content or 'PipelineBuilder' in content, "Pipeline infrastructure no encontrada"
 
 
 def test_code_comments_present():
@@ -190,7 +196,8 @@ def test_code_comments_present():
         '../..',
         'app',
         'agents',
-        'support_agent.py'
+        'support',
+        'agent.py'
     )
 
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -213,7 +220,8 @@ def test_no_todo_or_fixme_comments():
         '../..',
         'app',
         'agents',
-        'support_agent.py'
+        'support',
+        'agent.py'
     )
 
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -224,20 +232,66 @@ def test_no_todo_or_fixme_comments():
 
 
 def test_helper_markers_present():
-    """Verifica que marcadores de helpers están presentes"""
+    """Verifica que la arquitectura del Pipeline Pattern está implementada correctamente"""
     file_path = os.path.join(
         os.path.dirname(__file__),
         '../..',
         'app',
         'agents',
-        'support_agent.py'
+        'support',
+        'agent.py'
     )
 
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Should have markers indicating helper usage
-    assert '✅ Usando helper' in content or 'Usando helper' in content
-    assert '_empty_rag_result' in content
-    assert '_format_greeting' in content
-    assert '_build_response_data' in content
+    # El nuevo SupportAgent usa Pipeline Pattern en lugar de helpers legacy
+    # Verificar componentes clave del pipeline
+    assert 'PipelineBuilder' in content, "PipelineBuilder no encontrado"
+    assert '.add(' in content, "Configuración de steps con .add() no encontrada"
+    assert 'IntentClassifierStep' in content, "IntentClassifierStep no encontrado"
+    assert 'context.get_result(' in content, "Acceso a resultados del pipeline no encontrado"
+
+
+def test_get_department_contacts_function():
+    """Verifica que nueva función get_department_contacts() funciona"""
+    contacts = get_department_contacts()
+    assert isinstance(contacts, dict)
+    assert len(contacts) > 0
+
+    # Validar estructura de contactos devueltos
+    required_fields = ["name", "keywords", "phone", "hours"]
+
+    for dept, config in contacts.items():
+        assert isinstance(dept, str)
+        assert isinstance(config, dict)
+
+        for field in required_fields:
+            assert field in config, f"Missing field '{field}' in department '{dept}'"
+
+
+def test_get_department_contact_function():
+    """Verifica que get_department_contact() funciona"""
+    dept = get_department_contact("propietarios")
+    assert dept is not None
+    assert "phone" in dept
+    assert "name" in dept
+    assert "hours" in dept
+    assert "keywords" in dept
+
+    # Test departamento inexistente
+    non_existent = get_department_contact("departamento_inexistente")
+    assert non_existent is None
+
+
+def test_department_contacts_backward_compatibility():
+    """Verifica que DEPARTMENT_CONTACTS mantiene compatibilidad con código legacy"""
+    # La variable global DEPARTMENT_CONTACTS debe seguir funcionando
+    assert DEPARTMENT_CONTACTS is not None
+    assert isinstance(DEPARTMENT_CONTACTS, dict)
+
+    # Debe tener la misma estructura que get_department_contacts()
+    contacts_from_function = get_department_contacts()
+
+    # Ambos deben tener los mismos departamentos
+    assert set(DEPARTMENT_CONTACTS.keys()) == set(contacts_from_function.keys())

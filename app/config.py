@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from typing import Optional, Dict, Any
 import os
+import json
 from pydantic import ConfigDict
 
 class Settings(BaseSettings): #Hereda de baseSetting para configuraciones automaticas de .env
@@ -45,10 +46,12 @@ class Settings(BaseSettings): #Hereda de baseSetting para configuraciones automa
     # Security
     webhook_verify_signature: bool = True
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"  # Permite variables ENV adicionales (ej: DEPARTMENT_CONTACT_*)
+    )
 
 
 ENABLE_HOT_RELOAD = True
@@ -65,11 +68,8 @@ STATE_FLUJO_COMPLETADO = "FLUJO_COMPLETADO"
 STATE_TRANSFERIDO = "TRANSFERIDO"
 
 # Estados de SupportAgent
-STATE_TRANSFERIDO_SUPPORT = "TRANSFERIDO_SUPPORT"
 STATE_CONSULTA_INFORMATIVA = "CONSULTA_INFORMATIVA"
 STATE_SOPORTE_ACTIVO = "SOPORTE_ACTIVO"
-STATE_REDIRIGIDO_CARTERA = "REDIRIGIDO_CARTERA"
-STATE_REDIRIGIDO_MANTENIMIENTO = "REDIRIGIDO_MANTENIMIENTO"
 
 # Estados de LeadsalesAgent (Conversión CRM)
 STATE_CAPTURANDO_DETALLES = "CAPTURANDO_DETALLES"
@@ -78,8 +78,7 @@ STATE_CONFIRMANDO_INFORMACION = "CONFIRMANDO_INFORMACION"
 STATE_PROCESANDO_CRM = "PROCESANDO_CRM"
 STATE_LEAD_CREADO = "LEAD_CREADO"
 
-# Estados legacy (mantener para compatibilidad)
-STATE_ESPERANDO_RESPUESTA_INICIAL = "ESPERANDO_RESPUESTA_INICIAL"
+# Estado legacy (mantener para compatibilidad)
 STATE_RECOPILANDO_NECESIDAD = "RECOPILANDO_NECESIDAD"
 
 # Estados tri-path routing (NUEVO)
@@ -100,19 +99,15 @@ VALID_STATES = [
     STATE_FLUJO_COMPLETADO,
     STATE_TRANSFERIDO,
     # Estados de SupportAgent
-    STATE_TRANSFERIDO_SUPPORT,
     STATE_CONSULTA_INFORMATIVA,
     STATE_SOPORTE_ACTIVO,
-    STATE_REDIRIGIDO_CARTERA,
-    STATE_REDIRIGIDO_MANTENIMIENTO,
     # Estados de LeadsalesAgent
     STATE_CAPTURANDO_DETALLES,
     STATE_PROFUNDIZANDO_NECESIDAD,
     STATE_CONFIRMANDO_INFORMACION,
     STATE_PROCESANDO_CRM,
     STATE_LEAD_CREADO,
-    # Legacy states
-    STATE_ESPERANDO_RESPUESTA_INICIAL,
+    # Legacy state (mantener)
     STATE_RECOPILANDO_NECESIDAD,
     # Tri-path routing states
     STATE_ROUTING_ANALYSIS,
@@ -121,7 +116,8 @@ VALID_STATES = [
 ]
 
 # CONFIGURACIÓN DE DEPARTAMENTOS (Todos los agentes deben adherirse estrictamente a estas transiciones.)
-DEPARTMENT_CONTACTS = {
+# Defaults hardcoded como fallback (valores actuales)
+_DEFAULT_DEPARTMENT_CONTACTS = {
     "propietarios": {
         "phone": "322 502 1493",
         "name": "Departamento de Propietarios",
@@ -158,6 +154,91 @@ DEPARTMENT_CONTACTS = {
         "keywords": ["abogado", "legal", "demanda", "jurídico"]
     }
 }
+
+def get_department_contacts() -> Dict[str, Dict[str, Any]]:
+    """
+    Obtiene configuración de contactos de departamentos.
+
+    Prioridad:
+    1. Variable de entorno DEPARTMENT_CONTACTS_JSON (JSON completo)
+    2. Variables individuales DEPARTMENT_CONTACT_{DEPT}_* (por departamento)
+    3. Valores hardcoded por defecto (fallback seguro)
+
+    Returns:
+        Dict con configuración de departamentos
+
+    Logging:
+        - INFO: cuando usa ENV
+        - WARNING: cuando usa fallback (falta ENV)
+    """
+    # Opción 1: JSON completo desde ENV
+    env_json = os.getenv("DEPARTMENT_CONTACTS_JSON")
+    if env_json:
+        try:
+            contacts = json.loads(env_json)
+            print("[Config] DEPARTMENT_CONTACTS cargado desde ENV (JSON)")
+            return contacts
+        except json.JSONDecodeError as e:
+            print(f"[Config] WARNING: DEPARTMENT_CONTACTS_JSON inválido: {e}")
+            print("[Config] Usando valores por defecto (fallback)")
+            return _DEFAULT_DEPARTMENT_CONTACTS
+
+    # Opción 2: Variables individuales por departamento
+    contacts = {}
+    any_env_found = False
+
+    for dept_key in _DEFAULT_DEPARTMENT_CONTACTS.keys():
+        dept_upper = dept_key.upper()
+
+        # Buscar variables ENV para este departamento
+        phone = os.getenv(f"DEPARTMENT_CONTACT_{dept_upper}_PHONE")
+        name = os.getenv(f"DEPARTMENT_CONTACT_{dept_upper}_NAME")
+        hours = os.getenv(f"DEPARTMENT_CONTACT_{dept_upper}_HOURS")
+
+        if phone or name or hours:
+            any_env_found = True
+            # Usar ENV con fallback a defaults para campos faltantes
+            default = _DEFAULT_DEPARTMENT_CONTACTS[dept_key]
+            contacts[dept_key] = {
+                "phone": phone or default["phone"],
+                "name": name or default["name"],
+                "hours": hours or default["hours"],
+                "services": default["services"],  # No configurable por ENV
+                "keywords": default["keywords"]   # No configurable por ENV
+            }
+        else:
+            # Usar defaults completos
+            contacts[dept_key] = _DEFAULT_DEPARTMENT_CONTACTS[dept_key]
+
+    if any_env_found:
+        print("[Config] DEPARTMENT_CONTACTS cargado parcialmente desde ENV")
+    else:
+        print("[Config] WARNING: DEPARTMENT_CONTACTS usando valores por defecto (no ENV configurado)")
+
+    return contacts
+
+# Lazy loading - se carga al primer acceso
+_DEPARTMENT_CONTACTS_CACHE = None
+
+def get_department_contact(dept: str) -> Optional[Dict[str, Any]]:
+    """
+    Obtiene configuración de un departamento específico.
+
+    Args:
+        dept: Nombre del departamento (ej: "propietarios", "contratos")
+
+    Returns:
+        Dict con configuración del departamento o None si no existe
+    """
+    global _DEPARTMENT_CONTACTS_CACHE
+
+    if _DEPARTMENT_CONTACTS_CACHE is None:
+        _DEPARTMENT_CONTACTS_CACHE = get_department_contacts()
+
+    return _DEPARTMENT_CONTACTS_CACHE.get(dept)
+
+# Backward compatibility: variable global
+DEPARTMENT_CONTACTS = get_department_contacts()
 
 # Singleton para acceso global
 settings = Settings()

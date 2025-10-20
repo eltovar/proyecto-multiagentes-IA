@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 from app.services.llm_service import LLMService
 from app.rag.rag_system import RAGSystem
 from app.state.manager import StateManager
-from app.services.leadsales_service import LeadsalesService
+from app.services.leadsales import LeadsalesService
 
 
 class ServiceContainer:

@@ -1,11 +1,14 @@
-"""Cliente HTTP para Leadsales API 
+""" Servicio externos para cliente HTTP para Leadsales API 
     Puente de comunicación entre tu aplicación (el agente de IA) y el sistema de gestión de Leadsales.
+    Separacion de responsabilidades
 """
 
 import httpx
 from typing import Dict, Any, Optional
 from app.config import settings
-from app.utils.error_logger import log_error, log_info
+from app.monitoring.logger import get_logger
+
+logger = get_logger(__name__)
 
 class LeadsalesClient:
     """Cliente HTTP simplificado para API de Leadsales"""
@@ -23,10 +26,10 @@ class LeadsalesClient:
                 return self._validate_response(response)
 
         except httpx.TimeoutException:
-            log_error("LeadsalesClient", "Timeout conectando con API")
+            logger.error("Timeout conectando con API")
             return {"success": False, "error": "Timeout en API de Leadsales"}
         except Exception as e:
-            log_error("LeadsalesClient", "Error inesperado", e)
+            logger.error("Error inesperado", exc_info=e)
             return {"success": False, "error": f"Error inesperado: {str(e)}"}
 
     async def get_lead(self, whatsapp_id: str) -> Optional[Dict[str, Any]]:
@@ -40,7 +43,7 @@ class LeadsalesClient:
                         return leads_data[0]
 
         except Exception as e:
-            log_error("LeadsalesClient", "Error buscando lead", e)
+            logger.error("Error buscando lead", exc_info=e)
 
         return None
 
@@ -50,14 +53,14 @@ class LeadsalesClient:
                 response = await client.patch(f"{self.api_url}/leads/{lead_id}", json=update_data, headers=self._get_headers())
 
                 if response.status_code == 200:
-                    log_info("LeadsalesClient", f"Lead {lead_id} actualizado")
+                    logger.info(f"Lead {lead_id} actualizado")
                     return True
                 else:
-                    log_error("LeadsalesClient", f"Error actualizando lead: {response.status_code}")
+                    logger.error(f"Error actualizando lead: {response.status_code}")
                     return False
 
         except Exception as e:
-            log_error("LeadsalesClient", f"Error actualizando lead {lead_id}", e)
+            logger.error(f"Error actualizando lead {lead_id}", exc_info=e)
             return False
 
     async def assign_advisor(self, lead_id: str, criteria: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -68,14 +71,14 @@ class LeadsalesClient:
                 if response.status_code == 200:
                     assignment_result = response.json()
                     advisor_info = assignment_result.get("advisor", {})
-                    log_info("LeadsalesClient", f"Asesor asignado: {advisor_info.get('name')}")
+                    logger.info(f"Asesor asignado: {advisor_info.get('name')}")
                     return {"success": True, "advisor": advisor_info}
                 else:
-                    log_error("LeadsalesClient", f"Error asignando asesor: {response.status_code}")
+                    logger.error(f"Error asignando asesor: {response.status_code}")
                     return {"success": False, "error": f"Error HTTP {response.status_code}"}
 
         except Exception as e:
-            log_error("LeadsalesClient", "Error asignando asesor", e)
+            logger.error("Error asignando asesor", exc_info=e)
             return {"success": False, "error": str(e)}
 
     async def health_check(self) -> Dict[str, Any]:
@@ -97,12 +100,12 @@ class LeadsalesClient:
         if response.status_code == 201:
             result_data = response.json()
             lead_id = result_data.get("id", "unknown")
-            log_info("LeadsalesClient", f"Lead creado: {lead_id}")
+            logger.info(f"Lead creado: {lead_id}")
             return {"success": True, "lead_id": lead_id, "data": result_data}
         elif response.status_code == 409:
-            log_info("LeadsalesClient", "Lead ya existe")
+            logger.info("Lead ya existe")
             return {"success": False, "error": "Lead ya existe", "code": "DUPLICATE"}
         else:
             error_detail = response.text
-            log_error("LeadsalesClient", f"Error API: {response.status_code} - {error_detail}")
+            logger.error(f"Error API: {response.status_code} - {error_detail}")
             return {"success": False, "error": f"Error HTTP {response.status_code}: {error_detail}"}

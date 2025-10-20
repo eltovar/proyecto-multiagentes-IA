@@ -32,11 +32,8 @@ try:
     STATE_TRANSFERIDO = config_module.STATE_TRANSFERIDO
 
     # Estados de SupportAgent
-    STATE_TRANSFERIDO_SUPPORT = config_module.STATE_TRANSFERIDO_SUPPORT
     STATE_CONSULTA_INFORMATIVA = config_module.STATE_CONSULTA_INFORMATIVA
     STATE_SOPORTE_ACTIVO = config_module.STATE_SOPORTE_ACTIVO
-    STATE_REDIRIGIDO_CARTERA = config_module.STATE_REDIRIGIDO_CARTERA
-    STATE_REDIRIGIDO_MANTENIMIENTO = config_module.STATE_REDIRIGIDO_MANTENIMIENTO
 
     # Estados de LeadsalesAgent
     STATE_CAPTURANDO_DETALLES = config_module.STATE_CAPTURANDO_DETALLES
@@ -45,8 +42,7 @@ try:
     STATE_PROCESANDO_CRM = config_module.STATE_PROCESANDO_CRM
     STATE_LEAD_CREADO = config_module.STATE_LEAD_CREADO
 
-    # Estados legacy
-    STATE_ESPERANDO_RESPUESTA_INICIAL = config_module.STATE_ESPERANDO_RESPUESTA_INICIAL
+    # Estado legacy
     STATE_RECOPILANDO_NECESIDAD = config_module.STATE_RECOPILANDO_NECESIDAD
 
     # Estados tri-path routing (NUEVO)
@@ -58,6 +54,8 @@ try:
 
     # Configuración de departamentos (NUEVO)
     DEPARTMENT_CONTACTS = config_module.DEPARTMENT_CONTACTS
+    get_department_contacts = config_module.get_department_contacts
+    get_department_contact = config_module.get_department_contact
 
 except Exception as e:
     # Fallback si falla la carga dinámica
@@ -81,23 +79,21 @@ __all__ = [
     "STATE_PREGUNTA_FECHA_NECESIDAD",
     "STATE_FLUJO_COMPLETADO",
     "STATE_TRANSFERIDO",
-    "STATE_TRANSFERIDO_SUPPORT",
     "STATE_CONSULTA_INFORMATIVA",
     "STATE_SOPORTE_ACTIVO",
-    "STATE_REDIRIGIDO_CARTERA",
-    "STATE_REDIRIGIDO_MANTENIMIENTO",
     "STATE_CAPTURANDO_DETALLES",
     "STATE_PROFUNDIZANDO_NECESIDAD",
     "STATE_CONFIRMANDO_INFORMACION",
     "STATE_PROCESANDO_CRM",
     "STATE_LEAD_CREADO",
-    "STATE_ESPERANDO_RESPUESTA_INICIAL",
     "STATE_RECOPILANDO_NECESIDAD",
     "STATE_ROUTING_ANALYSIS",
     "STATE_SUPPORT_ACTIVE",
     "STATE_DEPARTMENT_REDIRECT",
     "VALID_STATES",
-    "DEPARTMENT_CONTACTS"
+    "DEPARTMENT_CONTACTS",
+    "get_department_contacts",
+    "get_department_contact"
 ]
 
 ENABLE_HOT_RELOAD = True  # O False, dependiendo de la configuración deseada

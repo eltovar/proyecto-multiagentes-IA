@@ -1,3 +1,4 @@
+# Prompts centralizados para el sistema
 
 from .system_prompts import (
     SOFIA_PERSONALITY,
@@ -18,6 +19,25 @@ from .classification_prompts import (
     CLASSIFY_TRIPATH_INTENT
 )
 
+from .llm_service_prompts import (
+    CLASSIFY_QUESTION_VS_NEED_SYSTEM,
+    CLASSIFY_QUESTION_VS_NEED_USER
+)
+
+from .generator_prompts import (
+    GENERATE_CONTEXTUAL_RESPONSE_SYSTEM,
+    GENERATE_CONTEXTUAL_RESPONSE_USER,
+    GENERATE_FOLLOWUP_SYSTEM,
+    GENERATE_FOLLOWUP_USER
+)
+
+from .classifier_prompts import (
+    CLASSIFY_INTENTION_SYSTEM,
+    CLASSIFY_INTENTION_USER,
+    ANALYZE_SENTIMENT_SYSTEM,
+    ANALYZE_SENTIMENT_USER
+)
+
 __all__ = [
     # System prompts
     "SOFIA_PERSONALITY",
@@ -30,8 +50,24 @@ __all__ = [
     "EXTRACT_NAME_ONLY",
     "EXTRACT_PROPERTY_FEATURES",
 
-    # Classification prompts
+    # Classification prompts (legacy)
     "CLASSIFY_INTENTION",
     "CLASSIFY_SUPPORT_CATEGORY",
-    "CLASSIFY_TRIPATH_INTENT"
+    "CLASSIFY_TRIPATH_INTENT",
+
+    # LLM Service prompts
+    "CLASSIFY_QUESTION_VS_NEED_SYSTEM",
+    "CLASSIFY_QUESTION_VS_NEED_USER",
+
+    # Generator prompts
+    "GENERATE_CONTEXTUAL_RESPONSE_SYSTEM",
+    "GENERATE_CONTEXTUAL_RESPONSE_USER",
+    "GENERATE_FOLLOWUP_SYSTEM",
+    "GENERATE_FOLLOWUP_USER",
+
+    # Classifier prompts (new structure)
+    "CLASSIFY_INTENTION_SYSTEM",
+    "CLASSIFY_INTENTION_USER",
+    "ANALYZE_SENTIMENT_SYSTEM",
+    "ANALYZE_SENTIMENT_USER"
 ]

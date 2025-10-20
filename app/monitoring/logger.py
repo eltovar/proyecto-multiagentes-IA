@@ -136,3 +136,13 @@ class PerformanceTracker:
 # Instancias globales
 structured_logger = StructuredLogger()
 performance_tracker = PerformanceTracker()
+
+def get_logger(name: str = __name__):
+    """
+    Retorna logger compatible con logging estándar de Python.
+
+    Por ahora retorna StructuredLogger global.
+    En el futuro puede crear loggers específicos por módulo.
+    """
+    import logging
+    return logging.getLogger(name)

@@ -13,14 +13,17 @@ import tempfile
 import sqlite3
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from app.agents.reception_agent import ReceptionAgent
+from app.core.factory_orchestrator import FactoryOrchestrator
+from app.core.di import DIContainer
 from tests.mocks.openai_mock import MockOpenAIClient
 
 
 @pytest.fixture
 def mock_reception_agent():
     """ReceptionAgent con LLM mockeado."""
-    agent = ReceptionAgent()
+    container = DIContainer()
+    orchestrator = FactoryOrchestrator(container)
+    agent = orchestrator.get_agent("reception")
     agent.llm_service.api_client.initialized = True
     mock_client = MockOpenAIClient()
     agent.llm_service.api_client.client = mock_client

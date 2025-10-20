@@ -17,12 +17,22 @@ class FactoryOrchestrator:
     No mantiene instancias de agentes en memoria → hot reload natural.
     """
 
-    def __init__(self):
+    def __init__(self, container: Optional['DIContainer'] = None):
+        """
+        Args:
+            container: DIContainer opcional. Si no se provee, usa ServiceContainer por defecto.
+        """
         # Factory registry
         self.factory_registry = AgentFactoryRegistry()
 
         # Service container (servicios compartidos, NO se recargan)
-        self.service_container = ServiceContainer()
+        # Si se provee DIContainer, usarlo; sino, usar ServiceContainer legacy
+        if container is not None:
+            self.di_container = container
+            self.service_container = None  # No usar ServiceContainer si hay DIContainer
+        else:
+            self.di_container = None
+            self.service_container = ServiceContainer()
 
         # Prioridad de agentes
         self.agent_priority = ["SupportAgent", "ReceptionAgent", "LeadsalesAgent"]
@@ -80,12 +90,38 @@ class FactoryOrchestrator:
             self.log_action("Error procesando mensaje", str(e))
             await self._send_error_message(sender_id)
 
+    def get_agent(self, agent_name: str):
+        """
+        Obtiene agente por nombre (para tests y uso directo).
+        Crea instancia FRESH usando Factory Pattern.
+
+        Args:
+            agent_name: Nombre del agente ("reception", "support", "leadsales")
+        """
+        # Mapeo de nombres legacy a nombres Factory
+        factory_name_map = {
+            "reception": "ReceptionAgent",
+            "support": "SupportAgent",
+            "leadsales": "LeadsalesAgent"
+        }
+
+        factory_name = factory_name_map.get(agent_name, agent_name)
+        shared_services = self._get_shared_services()
+        return self.factory_registry.create_agent(factory_name, shared_services)
+
+    def _get_shared_services(self) -> Dict[str, Any]:
+        """Obtiene servicios compartidos desde DIContainer o ServiceContainer"""
+        if self.di_container:
+            return self.di_container.get_all_services()
+        else:
+            return self.service_container.get_all_services()
+
     async def _select_agent(self, message_data: Dict[str, Any], conversation: Dict[str, Any]):
         """
         Selecciona agente apropiado CREANDO INSTANCIA FRESH.
         Esto hace que cada request use el código más reciente.
         """
-        shared_services = self.service_container.get_all_services()
+        shared_services = self._get_shared_services()
 
         for agent_name in self.agent_priority:
             # ✅ Crear instancia FRESH del agente
@@ -128,7 +164,7 @@ class FactoryOrchestrator:
         }
 
         # ✅ Crear instancia FRESH del target agent
-        shared_services = self.service_container.get_all_services()
+        shared_services = self._get_shared_services()
         target_agent = self.factory_registry.create_agent(target_agent_name, shared_services)
 
         try:
@@ -180,9 +216,16 @@ class FactoryOrchestrator:
 
     def health_check(self) -> Dict[str, Any]:
         """Health check incluyendo servicios"""
+        # Health check de servicios según el container usado
+        if self.di_container:
+            services_health = self.di_container.health_check()
+        else:
+            services_health = self.service_container.health_check()
+
         return {
             "status": "healthy",
             "orchestrator": "factory_based",
             "factories_registered": len(self.factory_registry._factories),
-            "services": self.service_container.health_check()
+            "container_type": "DIContainer" if self.di_container else "ServiceContainer",
+            "services": services_health
         }

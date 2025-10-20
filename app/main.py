@@ -2,9 +2,14 @@
     Punto de entrada HTTP para webhooks de WhatsApp y endpoints de salud. '''
 
 from fastapi import FastAPI, Request, Response, HTTPException
-from app.core.processor import process_message
 from app.config import settings
 from app.state.models import initialize_database
+from app.core.factory_orchestrator import FactoryOrchestrator
+from app.core.di import DIContainer
+
+
+container = DIContainer()
+orchestrator = FactoryOrchestrator()
 
 initialize_database()
 
@@ -34,17 +39,14 @@ def verify_webhook(request: Request):
 @app.post("/webhook")
 async def handle_webhook(request: Request):
     data = await request.json()
-    print("📨 Webhook recibido:", data)
-
     try:
         message = data["entry"][0]["changes"][0]["value"]["messages"][0]
         if message["type"] == "text":
-            await process_message(message)
+            await orchestrator.process_message(message)  # Directo
     except (KeyError, IndexError):
         pass
-
     return Response(status_code=200)
-
+    
 @app.get("/health")
 def health_check():
     return {

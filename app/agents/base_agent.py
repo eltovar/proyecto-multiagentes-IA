@@ -1,34 +1,17 @@
 '''
     Clase base para todos los agentes.
     Define interfaz comun, loggin, estructura de respuesta y manejo de estado.
-
-    🔥 DEPENDENCY INJECTION:
-    - Los servicios (llm_service, state_manager) se inyectan en lugar de importarse globalmente
-    - Esto permite Hot Reload correcto al recargar agentes
-    - Backward compatible: Si no se inyectan, usa None (agentes legacy)
 '''
 
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 
-# ❌ REMOVIDO: Imports globales de singletons
-# Se reemplaza con Dependency Injection
-
 class BaseAgent(ABC):
 
     def __init__(self, name: str, llm_service=None, state_manager=None):
-        """
-        Inicializa BaseAgent con Dependency Injection.
-
-        Args:
-            name: Nombre del agente
-            llm_service: Servicio LLM inyectado (opcional para backward compatibility)
-            state_manager: State Manager inyectado (opcional para backward compatibility)
-        """
         self.name = name
-        self.agent_name = name  # Compatibilidad con código existente
+        self.agent_name = name  
 
-        # Dependency Injection con fallback para backward compatibility
         self._llm_service = llm_service
         self._state_manager = state_manager
 
@@ -36,14 +19,9 @@ class BaseAgent(ABC):
 
     @property
     def llm_service(self):
-        """
-        Lazy loading de llm_service.
-        Prioridad: inyectado > global import
-        """
+      
         if self._llm_service is not None:
             return self._llm_service
-
-        # Fallback: import global para backward compatibility
         try:
             from app.services.llm_service import llm_service
             return llm_service
@@ -57,14 +35,10 @@ class BaseAgent(ABC):
 
     @property
     def state_manager(self):
-        """
-        Lazy loading de state_manager.
-        Prioridad: inyectado > global import
-        """
+        
         if self._state_manager is not None:
             return self._state_manager
 
-        # Fallback: import global para backward compatibility
         try:
             from app.state.manager import state_manager
             return state_manager
