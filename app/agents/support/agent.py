@@ -1,7 +1,5 @@
-"""
-SupportAgent - Versión refactorizada con Pipeline Pattern
-Reduce complejidad ciclomática mediante procesamiento secuencial
-"""
+""" SupportAgent - Versión refactorizada con Pipeline Pattern
+    Reduce complejidad ciclomática mediante procesamiento secuencial """
 
 from typing import Dict, Any
 from app.agents.base_agent import BaseAgent
@@ -20,30 +18,11 @@ from app.agents.support.handlers.general import GeneralHandler
 
 class SupportAgent(BaseAgent):
     """
-    SupportAgent refactorizado con Pipeline Pattern.
-
-    Ventajas sobre versión anterior:
-    - Complejidad ciclomática reducida (process_message: CC 1 vs CC 12)
-    - Testeable (cada step se testea independientemente)
-    - Extensible (agregar/remover steps sin modificar código)
-    - Hot-reload friendly (steps se pueden recargar)
-
-    Flujo del Pipeline:
-    1. IntentClassifierStep → Clasifica intención con LLM
-    2. RAGSearchStep → Busca contexto en documentos
-    3. RoutingDecisionStep → Decide camino (property/department/general)
-    4. ResponseGeneratorStep → Genera respuesta con handler apropiado
+    Agente de soporte para consultas informativas (WhatsApp).
     """
 
     def __init__(self, llm_service=None, state_manager=None, rag_system=None):
-        """
-        Constructor con Dependency Injection.
 
-        Args:
-            llm_service: Servicio LLM inyectado
-            state_manager: State Manager inyectado
-            rag_system: Sistema RAG inyectado
-        """
         super().__init__("SupportAgent", llm_service=llm_service, state_manager=state_manager)
 
         # Servicios inyectados
@@ -113,55 +92,12 @@ class SupportAgent(BaseAgent):
                 .with_logging()
                 .build())
 
-    async def can_handle(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> bool:
-        """
-        SupportAgent maneja:
-        - Estados iniciales (NUEVO, ROUTING_ANALYSIS)
-        - Estados activos (SUPPORT_ACTIVE, DEPARTMENT_REDIRECT)
-        - Transferencias explícitas a SupportAgent
-
-        Args:
-            message_data: Datos del mensaje
-            conversation: Estado de la conversación
-
-        Returns:
-            True si puede manejar el mensaje
-        """
-        current_state = conversation.get("state", "NUEVO")
-
-        # NO manejar si transferido a humano
-        if current_state == "TRANSFERIDO":
-            transfer_metadata = conversation.get("transfer_metadata", {})
-            return transfer_metadata.get("to_agent") == "SupportAgent"
-
-        # Estados que SupportAgent maneja
-        support_states = [
-            "NUEVO",
-            "ROUTING_ANALYSIS",
-            "SUPPORT_ACTIVE",
-            "DEPARTMENT_REDIRECT",
-            "FLUJO_COMPLETADO"
-        ]
-
-        return current_state in support_states
-
     async def process_message(
         self,
         message_data: Dict[str, Any],
         conversation: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
-        Procesa mensaje usando Pipeline Pattern.
-
-        Args:
-            message_data: Datos del mensaje del usuario
-            conversation: Estado de la conversación
-
-        Returns:
-            Dict con respuesta, new_state, data_updates, transfer_to
-
-        Complejidad Ciclomática: 1 (trivial - delegación al pipeline)
-        """
+        """ Procesa mensaje usando Pipeline Pattern. """
         try:
             # Ejecutar pipeline
             context = await self.pipeline.process(

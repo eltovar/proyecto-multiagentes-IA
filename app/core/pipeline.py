@@ -30,125 +30,46 @@ class PipelineContext:
         return self.error is not None
 
 
-# PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 # Pipeline Steps
-# PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 
 class PipelineStep(ABC):
-    """
-    Paso abstracto del pipeline.
-
-    Cada paso debe:
-    1. Recibir PipelineContext
-    2. Procesar datos
-    3. Actualizar context.results
-    4. Retornar context modificado
-    """
 
     def __init__(self, name: str):
-        """
-        Args:
-            name: Nombre �nico del paso (para debugging/logging)
-        """
+        
         self.name = name
 
     @abstractmethod
     async def execute(self, context: PipelineContext) -> PipelineContext:
-        """
-        Ejecuta la l�gica del paso.
-
-        Args:
-            context: Contexto compartido del pipeline
-
-        Returns:
-            Contexto modificado
-        """
         pass
 
     def should_execute(self, context: PipelineContext) -> bool:
-        """
-        Determina si el paso debe ejecutarse (condicional).
-
-        Args:
-            context: Contexto actual
-
-        Returns:
-            True si el paso debe ejecutarse
-        """
+        
         return True
 
     def on_error(self, context: PipelineContext, error: Exception) -> PipelineContext:
-        """
-        Manejo de errores del paso.
-
-        Args:
-            context: Contexto actual
-            error: Excepci�n capturada
-
-        Returns:
-            Contexto con error manejado
-        """
+        
         context.error = error
         print(f"[Pipeline] Error en paso '{self.name}': {error}")
         return context
 
 
-# PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 # Pipeline Implementation
-# PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
-
 class MessagePipeline:
-    """
-    Pipeline de procesamiento de mensajes.
-
-    Ventajas sobre God Object:
-    - Complejidad ciclom�tica reducida (cada paso es simple)
-    - Testeable (cada paso se testea independientemente)
-    - Extensible (agregar/remover pasos sin modificar c�digo)
-    - Debugging f�cil (logs por paso)
-    - Hot-reload friendly (recargar pasos individuales)
-
-    Example:
-        >>> pipeline = MessagePipeline()
-        >>> pipeline.add_step(ClassifyIntentStep())
-        >>> pipeline.add_step(SearchRAGStep())
-        >>> pipeline.add_step(GenerateResponseStep())
-        >>> result = await pipeline.process(message_data, conversation)
-    """
-
+    
     def __init__(self, name: str = "DefaultPipeline"):
-        """
-        Args:
-            name: Nombre del pipeline (para logging)
-        """
+        """ Nombre del pipeline """
         self.name = name
         self.steps: List[PipelineStep] = []
         self.middlewares: List[Callable] = []
 
     def add_step(self, step: PipelineStep) -> 'MessagePipeline':
-        """
-        Agrega paso al pipeline.
-
-        Args:
-            step: PipelineStep a agregar
-
-        Returns:
-            self (para chaining)
-        """
+       
         self.steps.append(step)
         print(f"[Pipeline:{self.name}] Added step: {step.name}")
         return self
 
     def add_middleware(self, middleware: Callable) -> 'MessagePipeline':
-        """
-        Agrega middleware que se ejecuta antes de cada paso.
-
-        Args:
-            middleware: Function(context, step) -> context
-
-        Returns:
-            self (para chaining)
-        """
+        
         self.middlewares.append(middleware)
         return self
 
@@ -158,17 +79,7 @@ class MessagePipeline:
         conversation: Dict[str, Any],
         metadata: Optional[Dict[str, Any]] = None
     ) -> PipelineContext:
-        """
-        Procesa mensaje a trav�s del pipeline.
-
-        Args:
-            message: Mensaje del usuario
-            conversation: Estado de la conversaci�n
-            metadata: Metadata adicional opcional
-
-        Returns:
-            PipelineContext con resultados de todos los pasos
-        """
+        
         # Crear contexto inicial
         context = PipelineContext(
             message=message,
@@ -233,41 +144,23 @@ class MessagePipeline:
         print(f"[Pipeline:{self.name}] Cleared all steps")
 
     def get_step(self, name: str) -> Optional[PipelineStep]:
-        """
-        Obtiene paso por nombre.
-
-        Args:
-            name: Nombre del paso
-
-        Returns:
-            PipelineStep o None si no existe
-        """
+    
         for step in self.steps:
             if step.name == name:
                 return step
         return None
 
     def __repr__(self) -> str:
-        """Representaci�n string del pipeline"""
+        """Representacion string del pipeline"""
         step_names = [s.name for s in self.steps]
         return f"<Pipeline:{self.name} steps={step_names}>"
 
 
-# PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 # Utility Middleware
-# PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 
 async def logging_middleware(context: PipelineContext, step: PipelineStep) -> PipelineContext:
     """
-    Middleware de logging para debugging.
-
-    Args:
-        context: Contexto actual
-        step: Paso a ejecutar
-
-    Returns:
-        Contexto sin modificar
-    """
+    Middleware de logging para debugging."""
     print(f"[Middleware:Logging] Before step '{step.name}' - Results: {list(context.results.keys())}")
     return context
 
@@ -275,17 +168,7 @@ async def logging_middleware(context: PipelineContext, step: PipelineStep) -> Pi
 async def validation_middleware(context: PipelineContext, step: PipelineStep) -> PipelineContext:
     """
     Middleware de validaci�n.
-
-    Args:
-        context: Contexto actual
-        step: Paso a ejecutar
-
-    Returns:
-        Contexto validado
-
-    Raises:
-        ValueError: Si contexto inv�lido
-    """
+"""
     if not context.message:
         raise ValueError("Context message is empty")
     if not context.conversation:
@@ -293,28 +176,11 @@ async def validation_middleware(context: PipelineContext, step: PipelineStep) ->
     return context
 
 
-# PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 # Builder Pattern Helper
-# PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 
 class PipelineBuilder:
-    """
-    Builder para crear pipelines de forma fluida.
-
-    Example:
-        >>> pipeline = (PipelineBuilder("SupportPipeline")
-        ...     .add(ClassifyIntentStep())
-        ...     .add(SearchRAGStep())
-        ...     .add(GenerateResponseStep())
-        ...     .with_logging()
-        ...     .build())
-    """
-
     def __init__(self, name: str):
-        """
-        Args:
-            name: Nombre del pipeline
-        """
+        """ Nombre del pipeline """
         self.pipeline = MessagePipeline(name)
 
     def add(self, step: PipelineStep) -> 'PipelineBuilder':

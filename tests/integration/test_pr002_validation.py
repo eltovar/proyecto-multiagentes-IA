@@ -12,15 +12,12 @@ async def test_demo_mode_uses_refactored_scoring():
     service = LeadsalesService()
     service.initialize()
 
-    # Forzar modo demo
-    def force_demo_mode():
-        return True
-
-    service._is_demo_mode = force_demo_mode
+    # Forzar modo demo (usar atributo público)
+    service.is_demo_mode = True
 
     result = await service.create_lead(
         customer_name="Test User",
-        whatsapp_id="573001234567",
+        whatsapp="573001234567",
         customer_needs="Busco apartamento urgente para comprar en Medellín con presupuesto de 300 millones",
         additional_data={"location": "Medellín"}
     )
@@ -47,30 +44,23 @@ async def test_production_mode_includes_scoring():
     service = LeadsalesService()
     service.initialize()
 
-    # Mock para simular producción sin modo demo
-    def force_production_mode():
-        return False
+    # Forzar modo producción (usar atributo público)
+    service.is_demo_mode = False
 
-    service._is_demo_mode = force_production_mode
-
-    # Mock del cliente HTTP para capturar el payload
-    from unittest.mock import AsyncMock, MagicMock
-
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {"lead_id": "12345", "status": "created"}
-
+    # Mock del cliente API para capturar el payload
     captured_payload = {}
 
-    async def mock_post_lead(lead_data):
+    async def mock_create_lead_api(lead_data):
+        """Mock que captura payload y devuelve respuesta simulada"""
         captured_payload.update(lead_data)
-        return {"success": True, "lead_id": "PROD-12345"}
+        return {"lead_id": "PROD-12345", "status": "created"}
 
-    service.client.post_lead = mock_post_lead
+    # Mockear el método correcto en la cadena de llamadas
+    service.client.create_lead_api = mock_create_lead_api
 
     result = await service.create_lead(
         customer_name="Test User",
-        whatsapp_id="573001234567",
+        whatsapp="573001234567",
         customer_needs="Necesito local comercial para arrendar",
         additional_data={}
     )
@@ -130,10 +120,10 @@ async def test_regression_scoring_consistency():
 
 @pytest.mark.asyncio
 async def test_no_duplicate_methods_exist():
-    """Validar que métodos duplicados fueron eliminados"""
+    """Validar que métodos duplicados fueron eliminados y arquitectura modular implementada"""
     service = LeadsalesService()
 
-    # Verificar que los métodos antiguos NO existen
+    # Verificar que los métodos antiguos NO existen (eliminados en PR002)
     assert not hasattr(service, '_calculate_demo_quality_score'), \
         "Method _calculate_demo_quality_score should be deleted"
     assert not hasattr(service, '_generate_demo_tags'), \
@@ -141,45 +131,45 @@ async def test_no_duplicate_methods_exist():
     assert not hasattr(service, '_determine_demo_priority'), \
         "Method _determine_demo_priority should be deleted"
 
-    # Verificar que los nuevos métodos SÍ existen
-    assert hasattr(service, '_init_scoring_components'), \
-        "Method _init_scoring_components should exist"
+    # Verificar arquitectura modular (PR003): componentes especializados
+    assert hasattr(service, 'scoring'), \
+        "Service should have 'scoring' component (LeadScoringIntegrator)"
     assert hasattr(service, '_score_lead'), \
-        "Method _score_lead should exist"
+        "Method _score_lead should exist as orchestrator"
+
+    # Verificar que NO tiene componentes directos (ahora están en LeadScoringIntegrator)
+    assert not hasattr(service, 'quality_scorer'), \
+        "quality_scorer should NOT be in LeadsalesService (moved to LeadScoringIntegrator)"
 
 
 @pytest.mark.asyncio
 async def test_scoring_components_initialized():
-    """Validar que componentes de scoring se inicializan correctamente"""
+    """Validar que componentes de scoring se inicializan correctamente en arquitectura modular"""
     service = LeadsalesService()
 
-    # Verificar que componentes existen
-    assert hasattr(service, 'quality_scorer'), \
-        "Service should have quality_scorer"
-    assert hasattr(service, 'interest_scorer'), \
-        "Service should have interest_scorer"
-    assert hasattr(service, 'taggers'), \
-        "Service should have taggers"
-    assert hasattr(service, 'priority_classifier'), \
-        "Service should have priority_classifier"
+    # Verificar que LeadScoringIntegrator existe
+    assert hasattr(service, 'scoring'), \
+        "Service should have 'scoring' component (LeadScoringIntegrator)"
 
-    # Verificar tipos correctos
-    assert len(service.taggers) == 4, \
-        f"Expected 4 taggers, got {len(service.taggers)}"
+    # Verificar que scoring está inicializado
+    assert service.scoring is not None, \
+        "LeadScoringIntegrator should be initialized"
 
-    # Verificar que son instancias correctas
-    from app.services.scoring.strategies import (
-        DemoQualityScorer,
-        InterestLevelScorer,
-        UrgencyPriorityClassifier
-    )
+    # Verificar que metadata_extractor existe
+    assert hasattr(service, 'metadata_extractor'), \
+        "Service should have 'metadata_extractor' component"
 
-    assert isinstance(service.quality_scorer, DemoQualityScorer), \
-        "quality_scorer should be DemoQualityScorer instance"
-    assert isinstance(service.interest_scorer, InterestLevelScorer), \
-        "interest_scorer should be InterestLevelScorer instance"
-    assert isinstance(service.priority_classifier, UrgencyPriorityClassifier), \
-        "priority_classifier should be UrgencyPriorityClassifier instance"
+    # Verificar que client_classifier existe (agregado en PR004)
+    assert hasattr(service, 'client_classifier'), \
+        "Service should have 'client_classifier' component"
+
+    # Verificar que visualization existe
+    assert hasattr(service, 'visualization'), \
+        "Service should have 'visualization' component"
+
+    # Verificar método orquestador
+    assert hasattr(service, '_score_lead'), \
+        "Service should have '_score_lead' orchestrator method"
 
 
 @pytest.mark.asyncio

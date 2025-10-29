@@ -4,11 +4,7 @@ Prompts específicos para LLMService.
 Este módulo contiene los prompts utilizados por llm_service.py para:
 - Clasificación binaria (pregunta vs necesidad)
 - Clasificación genérica con prompts personalizados
-- Fallback basado en keywords (no requiere prompt LLM)
 
-Autor: Sistema centralizado de prompts
-Fecha: 2025-10-16
-Relacionado: PR001 - Centralización de Prompts LLM
 """
 
 # ============================================================================

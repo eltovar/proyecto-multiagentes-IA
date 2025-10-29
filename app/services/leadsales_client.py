@@ -2,7 +2,6 @@
     Puente de comunicación entre tu aplicación (el agente de IA) y el sistema de gestión de Leadsales.
     Separacion de responsabilidades
 """
-
 import httpx
 from typing import Dict, Any, Optional
 from app.config import settings

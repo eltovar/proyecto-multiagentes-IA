@@ -7,19 +7,7 @@ from app.config import VALID_STATES
 
 
 class StateTransitionManager:
-    """
-    Gestor de transiciones de estado minimalista y eficiente.
-
-    RESPONSABILIDADES PRINCIPALES:
-    - Validar existencia de estados en VALID_STATES
-    - Proteger conversaciones transferidas (Handoff Protocol)
-    - Ejecutar actualizaciones de estado en base de datos
-
-    FILOSOFÍA MVS:
-    - Los agentes conocen mejor su flujo que un validador central
-    - Validación mínima esencial vs máxima flexibilidad
-    - Performance superior con set lookups O(1)
-    """
+    """ Gestor de transiciones de estado minimalista y eficiente """
 
     def __init__(self):
         """Initialize with optimized state validation."""
@@ -36,21 +24,7 @@ class StateTransitionManager:
         new_state: str,
         data: Dict[str, Any] = None
     ) -> bool:
-        """
-        Actualiza estado de conversación con validaciones esenciales.
-
-        VALIDACIONES APLICADAS:
-        1. Estado debe existir en VALID_STATES (seguridad)
-        2. Handoff Protocol: Estados TRANSFERIDO son terminales (business logic)
-
-        Args:
-            whatsapp_id: ID único de la conversación WhatsApp
-            new_state: Estado destino a aplicar
-            data: Metadata adicional a actualizar
-
-        Returns:
-            bool: True si actualización fue exitosa, False si fue bloqueada
-        """
+        """ Actualiza estado de conversación con validaciones esenciales."""
 
         # VALIDACIÓN 1: Estado debe ser válido
         if not self._is_valid_state(new_state):

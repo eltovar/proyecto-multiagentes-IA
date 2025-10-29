@@ -3,11 +3,6 @@ Prompts para generación de respuestas (LLMGenerator).
 
 Este módulo contiene los prompts utilizados por llm_generator.py para:
 - Generación de respuestas contextuales con RAG
-- Generación de preguntas de seguimiento (follow-ups)
-
-Autor: Sistema centralizado de prompts
-Fecha: 2025-10-16
-Relacionado: PR001 - Centralización de Prompts LLM
 """
 
 # ============================================================================

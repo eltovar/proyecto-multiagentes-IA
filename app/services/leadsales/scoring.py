@@ -81,6 +81,9 @@ class LeadScoringIntegrator:
         # Eliminar duplicados manteniendo orden
         unique_tags = list(dict.fromkeys(all_tags))
 
+        # Limitar a máximo 5 tags (las primeras son las más importantes por orden de taggers)
+        unique_tags = unique_tags[:5]
+
         # 5. Priority Classification (ALTA, MEDIA-ALTA, MEDIA, BAJA)
         priority = self.priority_classifier.classify(lead_data)
 
@@ -93,9 +96,12 @@ class LeadScoringIntegrator:
             priority
         )
 
+        # Extraer solo la parte corta del priority (antes del " - ")
+        priority_short = priority.split(" - ")[0] if " - " in priority else priority
+
         logger.info(
-            f"Scoring calculado: Quality={scoring_result['quality_score']}/100, "
-            f"Priority={priority}, Tags={len(unique_tags)}"
+            f"[LeadsalesService] Lead scored: quality={scoring_result['quality_score']}, "
+            f"tags={len(unique_tags)}, priority={priority_short}"
         )
 
         return scoring_result
@@ -133,5 +139,31 @@ class LeadScoringIntegrator:
             "tags": tags,
             "priority": priority,
             "confidence": round(avg_confidence, 2),
-            "reasoning": combined_reasoning
+            "reasoning": combined_reasoning,
+            "scoring_metadata": {
+                "quality": {
+                    "score": int(quality_result.score),
+                    "confidence": round(quality_result.confidence, 2),
+                    "reasoning": quality_result.reasoning,
+                    "factors": quality_result.factors
+                },
+                "interest": {
+                    "score": round(float(interest_result.score) / 100.0, 2),
+                    "confidence": round(interest_result.confidence, 2),
+                    "reasoning": interest_result.reasoning,
+                    "factors": interest_result.factors
+                },
+                "conversion": {
+                    "score": round(float(conversion_result.score) / 100.0, 2),
+                    "confidence": round(conversion_result.confidence, 2),
+                    "reasoning": conversion_result.reasoning,
+                    "factors": conversion_result.factors
+                },
+                # Aliases para backward compatibility con tests antiguos
+                "quality_factors": quality_result.factors,
+                "quality_confidence": round(quality_result.confidence, 2),
+                "quality_reasoning": quality_result.reasoning,
+                "tags_count": len(tags),
+                "priority": priority
+            }
         }

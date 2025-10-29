@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Sistema de logging estructurado por agente """
 
 import json

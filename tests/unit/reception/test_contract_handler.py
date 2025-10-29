@@ -47,6 +47,7 @@ async def test_handle_contract_question_success(contract_handler):
     result = await contract_handler.handle_contract_question(conversation, interaction_count)
 
     assert isinstance(result, ContractResult)
+    assert result.next_state == "PREGUNTA_CONTRATO_INMOBILIARIA"
     assert result.next_state == "STATE_PREGUNTA_CONTRATO_INMOBILIARIA"
     assert "contrato vigente" in result.response.lower()
     assert result.metadata["interaction_count"] == 3

@@ -1,0 +1,81 @@
+{
+  "customer_data": {
+    "name": "Carlos Investor Pro",
+    "whatsapp": "+573001234567",
+    "needs": "Busco apartamento para inversión en Poblado con análisis de ROI, proyección de plusvalía histórica y flujo de caja. Presupuesto de 800 millones.",
+    "quality_score": 100,
+    "tags": [
+      "APARTAMENTO",
+      "PRESUPUESTO_DEFINIDO"
+    ],
+    "priority": "ALTA",
+    "source": "whatsapp_bot",
+    "quality_confidence": 0.8,
+    "quality_factors": {
+      "high_keywords": 6,
+      "medium_keywords": 1,
+      "base_score": 40
+    },
+    "quality_reasoning": "Score basado en 6 keywords high-value y 1 medium-value",
+    "client_classification": {
+      "profile": "inversionista",
+      "sophistication_level": "alto",
+      "confidence": 0.9,
+      "reasoning": "Clasificación por reglas basada en keywords: inversión, roi, flujo de caja",
+      "detected_keywords": [
+        "inversión",
+        "roi",
+        "flujo de caja",
+        "plusvalía"
+      ],
+      "profession_explicit": false,
+      "classification_method": "rules",
+      "cost_usd": 0.0,
+      "latency_ms": 0.03840000135824084
+    }
+  },
+  "crm_simulation": {
+    "lead_id": "DEMO_20251027_101338",
+    "status": "nuevo",
+    "assigned_to": "Sin asignar",
+    "created_at": "2025-10-27T10:13:38.768022",
+    "next_followup": "2025-10-30",
+    "estimated_value": "alto",
+    "confidence_level": 0.8,
+    "priority": "ALTA"
+  },
+  "metadata": {
+    "location": "Poblado",
+    "budget_range": "500m_1000m",
+    "property_type": "apartamento",
+    "urgency_level": "low",
+    "extracted_at": "2025-10-27T10:13:38.767876"
+  },
+  "visualization_type": "demo_preview",
+  "integrated_analysis": {
+    "composite_score": 100,
+    "conversion_probability": 1.0,
+    "estimated_value": "alto",
+    "priority_adjusted": "ALTA",
+    "priority_numeric": 8,
+    "lead_segment": "high_value_investor",
+    "segment_description": "Inversionista de Alto Valor",
+    "key_insights": [
+      "📊 Inversionista profesional de alto valor",
+      "⭐ Lead de calidad excepcional",
+      "💰 Inversionista profesional: Priorizar respuesta técnica y ROI",
+      "📍 Interesado en zona: Poblado",
+      "💵 Presupuesto estimado: $500M - $1.000M"
+    ],
+    "recommended_actions": [
+      "Asignar a agente senior especializado en inversión",
+      "Preparar análisis de ROI y comparables de mercado",
+      "Agendar reunión presencial en menos de 48h"
+    ],
+    "risk_factors": [],
+    "profile": "inversionista",
+    "sophistication": "alto",
+    "analysis_confidence": 0.84,
+    "analysis_timestamp": "2025-10-27T10:13:38.767964"
+  }
+}

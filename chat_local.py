@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Sistema de Chat Local para Testing - Refactorizado (~80 lineas)"""
 
 import asyncio
@@ -18,11 +17,6 @@ try:
     from app.config import settings, ENABLE_HOT_RELOAD
     from app.config import ENABLE_HOT_RELOAD
 
-
-    # ❌ REMOVIDO: from app.agents.reception_agent import ReceptionAgent
-    # ❌ REMOVIDO: from app.core.orchestrator import AgentOrchestrator
-
-    # PASO 1: Activar LLM temporalmente
     settings.fixed_flow_mode = False
 
     print(f"[SYSTEM] LLM Status: {'ACTIVO' if not settings.fixed_flow_mode else 'DESACTIVADO'}")
@@ -51,21 +45,30 @@ async def process_user_message(message: str, orchestrator: FactoryOrchestrator) 
         # IMPORTANTE: Capturar conversación antes de procesar
         conversation_before = get_conversation_state(TEST_PHONE_NUMBER)
 
-        # ✅ SOLUCIÓN: Crear conversación si no existe O resetear si está transferida
+        # ✅ SOLUCIÓN MEJORADA: Detectar si necesitamos nueva conversación
         if not conversation_before:
+            # No existe conversación → Crear nueva
             from app.state.manager import update_conversation_state
             update_conversation_state(TEST_PHONE_NUMBER, "NUEVO")
             conversation_before = get_conversation_state(TEST_PHONE_NUMBER)
-        elif conversation_before.get('state') == 'TRANSFERIDO':
-            print(f"[RESET] Conversación transferida detectada, eliminando y creando nueva")
+            print("[CHAT] Nueva conversación iniciada en estado NUEVO")
+        
+        elif conversation_before.get('state') in ['TRANSFERIDO', 'FLUJO_COMPLETADO', 'LIMITE_ALCANZADO']:
+            # Conversación terminada → Resetear
+            print(f"[RESET] Conversación terminada detectada (estado: {conversation_before.get('state')})")
             from app.state.crud_operations import ConversationCRUD
             crud = ConversationCRUD()
             crud.delete_conversation(TEST_PHONE_NUMBER)
             from app.state.manager import update_conversation_state
             update_conversation_state(TEST_PHONE_NUMBER, "NUEVO")
             conversation_before = get_conversation_state(TEST_PHONE_NUMBER)
+            print("[CHAT] Nueva conversación iniciada después de reset")
+        
+        else:
+            # Conversación en progreso → Continuar
+            print(f"[CHAT] Continuando conversación existente (estado: {conversation_before.get('state')})")
 
-        # 🔥 INTERCEPTAR send_message para capturar respuesta
+        # send_message para capturar respuesta
         captured_responses = []
 
         # Importar send_message original
@@ -105,7 +108,36 @@ async def process_user_message(message: str, orchestrator: FactoryOrchestrator) 
             name = conversation_after.get('customer_name', 'N/A')
             current_agent = conversation_after.get('current_agent', 'N/A')
             print(f"[DEBUG] Estado: {state}, Nombre: {name}, Agente: {current_agent}")
+            
+# Mostrar estado actual para debugging
+        conversation_after = get_conversation_state(TEST_PHONE_NUMBER)
+        if conversation_after:
+            state = conversation_after.get('state', 'N/A')
+            name = conversation_after.get('customer_name', 'N/A')
+            current_agent = conversation_after.get('current_agent', 'N/A')
+            print(f"[DEBUG] Estado: {state}, Nombre: {name}, Agente: {current_agent}")
 
+            # ✅ NUEVO: Mostrar scoring si está disponible
+            metadata = conversation_after.get('metadata', {})
+            if isinstance(metadata, str):
+                import json
+                try:
+                    metadata = json.loads(metadata)
+                except:
+                    metadata = {}
+
+            if metadata and any(key in metadata for key in ['quality_score', 'tags', 'priority']):
+                print(f"[SCORING] 🎯 Quality: {metadata.get('quality_score', 'N/A')}/100")
+                print(f"[SCORING] 🏷️  Tags: {', '.join(metadata.get('tags', []))}")
+                print(f"[SCORING] ⚡ Priority: {metadata.get('priority', 'N/A')}")
+                if 'composite_score' in metadata:
+                    print(f"[SCORING] 📊 Composite: {metadata.get('composite_score', 'N/A'):.1f}/100")
+                if 'conversion_probability' in metadata:
+                    prob = metadata.get('conversion_probability', 0)
+                    print(f"[SCORING] 📈 Conversion: {prob*100:.0f}%")
+                if 'profile' in metadata:
+                    print(f"[SCORING] 👤 Profile: {metadata.get('profile', 'N/A').capitalize()}")
+        
     except Exception as e:
         print(f"[ERROR] Error procesando mensaje: {e}")
         import traceback
@@ -197,19 +229,3 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
-
-def start_chat():
-    """Función principal para iniciar el sistema de chat"""
-    print("Iniciando el sistema de chat...")
-    # Aquí iría la lógica para iniciar el sistema
-
-def reload_and_run():
-    """Recarga el módulo y reinicia el bucle de chat"""
-    importlib.reload(sys.modules[__name__])  # Recarga el módulo actual
-    start_chat()
-
-if __name__ == "__main__":
-    if ENABLE_HOT_RELOAD:
-        reload_and_run()
-    else:
-        start_chat()

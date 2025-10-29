@@ -13,19 +13,13 @@ class TestScoringInProduction:
         service = LeadsalesService()
         service.initialized = True
 
-        # Simular modo producción (no demo)
-        # Asegurar que no detecta modo demo
-        original_is_demo = service._is_demo_mode
+        # Forzar modo producción (no demo)
+        service.is_demo_mode = False
 
-        def mock_is_demo_mode():
-            return False
-
-        service._is_demo_mode = mock_is_demo_mode
-
-        # Mock del cliente HTTP para capturar lo que se envía
+        # Mock del cliente API para capturar el payload
         captured_lead_data = {}
 
-        async def mock_post_lead(lead_data):
+        async def mock_create_lead_api(lead_data):
             # Capturar datos enviados
             nonlocal captured_lead_data
             captured_lead_data = lead_data.copy()
@@ -51,9 +45,9 @@ class TestScoringInProduction:
             assert len(lead_data["tags"]) > 0, \
                 "tags debe contener al menos una etiqueta"
 
-            return {"success": True, "lead_id": "PROD-123"}
+            return {"lead_id": "PROD-123", "status": "created"}
 
-        service.client.post_lead = mock_post_lead
+        service.client.create_lead_api = mock_create_lead_api
 
         # Ejecutar creación de lead en "producción"
         result = await service.create_lead(
@@ -64,16 +58,13 @@ class TestScoringInProduction:
         )
 
         # Verificar resultado exitoso
-        assert result["success"] == True
         assert result["lead_id"] == "PROD-123"
+        assert result["status"] == "created"
 
         # Verificar que los campos de scoring fueron calculados
         assert captured_lead_data["quality_score"] > 0
         assert "APARTAMENTO" in captured_lead_data["tags"]
         assert "URGENTE" in captured_lead_data["tags"]
-
-        # Restaurar método original
-        service._is_demo_mode = original_is_demo
 
     async def test_production_scoring_matches_demo_scoring(self):
         """Verificar que scoring en producción es igual al de demo"""
@@ -133,17 +124,17 @@ class TestScoringInProduction:
         service = LeadsalesService()
         service.initialized = True
 
-        # Mock para no ser demo
-        service._is_demo_mode = lambda: False
+        # Forzar modo producción
+        service.is_demo_mode = False
 
         lead_data_sent = None
 
-        async def capture_post_lead(lead_data):
+        async def capture_create_lead_api(lead_data):
             nonlocal lead_data_sent
             lead_data_sent = lead_data
-            return {"success": True, "lead_id": "TEST-001"}
+            return {"lead_id": "TEST-001", "status": "created"}
 
-        service.client.post_lead = capture_post_lead
+        service.client.create_lead_api = capture_create_lead_api
 
         await service.create_lead(
             "Test User",
@@ -162,17 +153,17 @@ class TestScoringInProduction:
         service = LeadsalesService()
         service.initialized = True
 
-        # Mock para no ser demo
-        service._is_demo_mode = lambda: False
+        # Forzar modo producción
+        service.is_demo_mode = False
 
         lead_data_sent = None
 
-        async def capture_post_lead(lead_data):
+        async def capture_create_lead_api(lead_data):
             nonlocal lead_data_sent
             lead_data_sent = lead_data
-            return {"success": True, "lead_id": "TEST-002"}
+            return {"lead_id": "TEST-002", "status": "created"}
 
-        service.client.post_lead = capture_post_lead
+        service.client.create_lead_api = capture_create_lead_api
 
         await service.create_lead(
             "Test User 2",
@@ -193,16 +184,16 @@ class TestScoringInProduction:
         service = LeadsalesService()
         service.initialized = True
 
-        # Mock para no ser demo
-        service._is_demo_mode = lambda: False
+        # Forzar modo producción
+        service.is_demo_mode = False
 
         priorities_captured = []
 
-        async def capture_post_lead(lead_data):
+        async def capture_create_lead_api(lead_data):
             priorities_captured.append(lead_data["priority"])
-            return {"success": True, "lead_id": f"TEST-{len(priorities_captured)}"}
+            return {"lead_id": f"TEST-{len(priorities_captured)}", "status": "created"}
 
-        service.client.post_lead = capture_post_lead
+        service.client.create_lead_api = capture_create_lead_api
 
         # Test 1: Lead urgente
         await service.create_lead(
@@ -252,9 +243,10 @@ class TestScoringMetadata:
         )
 
         assert "scoring_metadata" in scoring_result
-        assert "quality_confidence" in scoring_result["scoring_metadata"]
-        assert 0 <= scoring_result["scoring_metadata"]["quality_confidence"] <= 1.0
-
+        assert "quality" in scoring_result["scoring_metadata"]
+        assert "confidence" in scoring_result["scoring_metadata"]["quality"]
+        assert 0 <= scoring_result["scoring_metadata"]["quality"]["confidence"] <= 1.0
+        
     async def test_scoring_metadata_includes_factors(self):
         """Verificar que metadata incluye factores del score"""
         service = LeadsalesService()

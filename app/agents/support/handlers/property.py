@@ -18,23 +18,9 @@ class PropertyHandlerResult:
 
 
 class PropertyHandler:
-    """
-    Handler para CAMINO 1: Usuario busca inmuebles.
-
-    Flujo: SupportAgent → ReceptionAgent → LeadsalesAgent → CRM
-
-    Responsabilidades:
-    - Generar mensaje personalizado con RAG + LLM
-    - Extraer entidades (tipo de propiedad, ubicación)
-    - Transferir a ReceptionAgent con metadata
-    """
+    """ usuario busca inmueble Sistema RAG busca respuesta"""
 
     def __init__(self, rag_system, llm_service):
-        """
-        Args:
-            rag_system: Sistema RAG para búsqueda de contexto
-            llm_service: Servicio LLM para generación de respuestas
-        """
         self.rag = rag_system
         self.llm = llm_service
 
@@ -44,20 +30,8 @@ class PropertyHandler:
         rag_result: Dict[str, Any],
         customer_name: str
     ) -> PropertyHandlerResult:
-        """
-        Maneja solicitud de búsqueda de inmuebles.
-
-        Extraído de: _handle_camino_1_inmueble (líneas 554-637)
-
-        Args:
-            classification: Resultado de clasificación de intención
-            rag_result: Resultado de búsqueda RAG
-            customer_name: Nombre del cliente
-
-        Returns:
-            PropertyHandlerResult con mensaje y metadata de transferencia
-        """
-        # Extraer entidades del classification
+        """ Maneja solicitud de búsqueda de inmuebles."""
+        
         entities = classification.get("entities", {})
         property_type = entities.get("property_type", "propiedad")
         location = entities.get("location", "")
@@ -97,17 +71,7 @@ class PropertyHandler:
         customer_name: str
     ) -> str:
         """
-        Genera mensaje personalizado usando RAG + LLM.
-
-        Args:
-            property_type: Tipo de propiedad (apartamento, casa, etc.)
-            location: Ubicación deseada
-            rag_context: Contexto extraído de RAG
-            customer_name: Nombre del cliente
-
-        Returns:
-            Mensaje personalizado o fallback genérico
-        """
+        Genera mensaje personalizado usando RAG + LLM."""
         # Intentar generación con RAG + LLM
         if rag_context and self.llm and hasattr(self.llm, 'api_client') and self.llm.api_client.initialized:
             try:
@@ -155,17 +119,7 @@ Instrucciones:
         location: str,
         customer_name: str
     ) -> str:
-        """
-        Mensaje fallback cuando RAG/LLM no están disponibles.
-
-        Args:
-            property_type: Tipo de propiedad
-            location: Ubicación
-            customer_name: Nombre del cliente
-
-        Returns:
-            Mensaje genérico estructurado
-        """
+        """ Mensaje fallback cuando RAG/LLM no están disponibles."""
         greeting = self._format_greeting(customer_name, "¡Perfecto")
         location_part = f" en {location}" if location else ""
 
@@ -178,22 +132,7 @@ Instrucciones:
 
     @staticmethod
     def _format_greeting(customer_name: str, prefix: str = "") -> str:
-        """
-        Helper: Formatear saludo con nombre del cliente.
-
-        Args:
-            customer_name: Nombre del cliente (puede estar vacío)
-            prefix: Prefijo del mensaje (ej: "Hola", "Perfecto")
-
-        Returns:
-            Mensaje formateado con o sin nombre
-
-        Examples:
-            >>> PropertyHandler._format_greeting("Carlos", "Hola")
-            "Hola, Carlos"
-            >>> PropertyHandler._format_greeting("", "Hola")
-            "Hola"
-        """
+        """ Formatear saludo con nombre del cliente. """
         if customer_name:
             return f"{prefix}, {customer_name}" if prefix else customer_name
         else:

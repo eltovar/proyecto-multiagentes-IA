@@ -43,20 +43,6 @@ class LeadsalesAgent(BaseAgent):
         self.capture_handler = CaptureHandler(response_generator, self.crm_handler, self)
         self.engagement_handler = EngagementHandler(response_generator, self)
 
-    async def can_handle(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> bool:
-        """LeadsalesAgent routing: transfers + conversion states"""
-        current_state = conversation.get("state", "")
-
-        # Transfer a LeadsalesAgent
-        if current_state == "TRANSFERIDO":
-            return conversation.get("transfer_metadata", {}).get("to_agent") == "LeadsalesAgent"
-
-        # Estados de conversión
-        return current_state in [
-            "FLUJO_COMPLETADO", "CAPTURANDO_DETALLES", "PROFUNDIZANDO_NECESIDAD",
-            "CONFIRMANDO_INFORMACION", "PROCESANDO_CRM"
-        ]
-
     async def process_message(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> Dict[str, Any]:
         """Pure routing - delegates to specialized handlers"""
         user_message = message_data.get("text", {}).get("body", "").strip()

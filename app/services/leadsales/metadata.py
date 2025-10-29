@@ -63,10 +63,12 @@ class LeadMetadataExtractor:
         whatsapp: str,
         customer_needs: str,
         scoring_result: Dict[str, Any],
-        metadata: Dict[str, Any]
+        metadata: Dict[str, Any],
+        classification_result: Optional[Any] = None,
+        lead_analysis: Optional[Any] = None  # ✅ NUEVO (PR005)
     ) -> Dict[str, Any]:
         """
-        Enriquece datos del cliente con scoring y metadata.
+        Enriquece datos del cliente con scoring, metadata, clasificación y análisis.
 
         Args:
             customer_name: Nombre del cliente
@@ -74,6 +76,8 @@ class LeadMetadataExtractor:
             customer_needs: Necesidades descritas
             scoring_result: Resultado de scoring
             metadata: Metadata extraída
+            classification_result: Clasificación de cliente (opcional)
+            lead_analysis: Análisis integrado del lead (opcional) ✅ NUEVO
 
         Returns:
             Dict con datos enriquecidos listos para CRM
@@ -101,7 +105,52 @@ class LeadMetadataExtractor:
             "created_at": datetime.now().isoformat(),
         }
 
-        logger.info(f"Datos enriquecidos para: {customer_name} (Quality: {scoring_result['quality_score']}/100)")
+        # Agregar scoring_metadata si existe (para backward compatibility con tests)
+        if "scoring_metadata" in scoring_result:
+            # Agregar campos de metadata anidados al nivel raíz para tests antiguos
+            enriched_data["quality_confidence"] = scoring_result["scoring_metadata"]["quality"]["confidence"]
+            enriched_data["quality_factors"] = scoring_result["scoring_metadata"]["quality_factors"]
+            enriched_data["quality_reasoning"] = scoring_result["scoring_metadata"]["quality_reasoning"]
+
+        # Agregar clasificación de cliente si está disponible
+        if classification_result:
+            enriched_data["client_classification"] = {
+                "profile": classification_result.profile,
+                "sophistication_level": classification_result.sophistication_level,
+                "confidence": classification_result.confidence,
+                "reasoning": classification_result.reasoning,
+                "detected_keywords": classification_result.detected_keywords,
+                "profession_explicit": classification_result.profession_explicit,
+                "classification_method": classification_result.classification_method,
+                "cost_usd": classification_result.cost_usd,
+                "latency_ms": classification_result.latency_ms
+            }
+
+        # Agregar análisis integrado si está disponible ✅ NUEVO (PR005)
+        if lead_analysis:
+            enriched_data["lead_analysis"] = {
+                "composite_score": lead_analysis.composite_score,
+                "conversion_probability": lead_analysis.conversion_probability,
+                "estimated_value": lead_analysis.estimated_value,
+                "priority": lead_analysis.priority,
+                "priority_numeric": lead_analysis.priority_numeric,
+                "lead_segment": lead_analysis.lead_segment,
+                "key_insights": lead_analysis.key_insights,
+                "recommended_actions": lead_analysis.recommended_actions,
+                "risk_factors": lead_analysis.risk_factors,
+                "confidence": lead_analysis.confidence
+            }
+
+            logger.info(
+                f"✅ Datos enriquecidos para: {customer_name} "
+                f"(Composite Score: {lead_analysis.composite_score:.1f}/100, "
+                f"Segment: {lead_analysis.lead_segment})"
+            )
+        else:
+            logger.info(
+                f"✅ Datos enriquecidos para: {customer_name} "
+                f"(Quality: {scoring_result['quality_score']}/100, sin análisis integrado)"
+            )
 
         return enriched_data
 

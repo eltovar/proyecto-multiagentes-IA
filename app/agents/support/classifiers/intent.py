@@ -30,16 +30,7 @@ IntentClassification = ClassificationResult
 
 
 class IntentClassifier:
-    """
-    Clasifica la intención del usuario en conversaciones de soporte.
-
-    Intenciones soportadas:
-    - property_inquiry: Consultas sobre inmuebles específicos
-    - general_question: Preguntas generales sobre servicios
-    - department_transfer: Solicitud de transferencia a departamento
-    - complaint: Quejas o problemas
-    - information: Solicitud de información
-    """
+    """ Clasifica la intención del usuario en conversaciones de soporte. """
 
     VALID_INTENTS = [
         "property_inquiry",
@@ -60,16 +51,7 @@ class IntentClassifier:
         message: str,
         conversation: Optional[Dict[str, Any]] = None
     ) -> ClassificationResult:
-        """
-        Clasifica la intención del mensaje del usuario.
-
-        Args:
-            message: Mensaje del usuario a clasificar
-            conversation: Contexto de conversación (opcional)
-
-        Returns:
-            ClassificationResult con intención, confianza y entidades
-        """
+        """ Clasifica la intención del mensaje del usuario. """
         if not message or not message.strip():
             return ClassificationResult(
                 intent="other",

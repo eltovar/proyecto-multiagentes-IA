@@ -28,7 +28,6 @@ def test_reception_agent_factory_creates_instance():
 
     assert agent is not None
     assert hasattr(agent, 'process_message')
-    assert hasattr(agent, 'can_handle')
 
 
 def test_support_agent_factory_creates_instance():
@@ -41,7 +40,6 @@ def test_support_agent_factory_creates_instance():
 
     assert agent is not None
     assert hasattr(agent, 'process_message')
-    assert hasattr(agent, 'can_handle')
 
 
 def test_leadsales_agent_factory_creates_instance():
@@ -54,7 +52,6 @@ def test_leadsales_agent_factory_creates_instance():
 
     assert agent is not None
     assert hasattr(agent, 'process_message')
-    assert hasattr(agent, 'can_handle')
 
 
 def test_factory_creates_fresh_instances():

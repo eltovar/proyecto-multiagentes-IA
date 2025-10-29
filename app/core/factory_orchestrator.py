@@ -82,7 +82,7 @@ class FactoryOrchestrator:
 
             # Manejar transferencia
             if result.get("transfer_to"):
-                transfer_metadata = result.get("transfer_metadata", {})
+                transfer_metadata = result.get("data_updates", {})
                 await self._handle_agent_transfer(message_data, conversation,
                                                 result["transfer_to"], transfer_metadata)
 
@@ -116,23 +116,115 @@ class FactoryOrchestrator:
         else:
             return self.service_container.get_all_services()
 
-    async def _select_agent(self, message_data: Dict[str, Any], conversation: Dict[str, Any]):
-        """
-        Selecciona agente apropiado CREANDO INSTANCIA FRESH.
-        Esto hace que cada request use el código más reciente.
-        """
+    def select_agent(self, message: str, state: 'ConversationState'):
+        """ Método síncrono simplificado para seleccionar agente (tests y uso directo)."""
         shared_services = self._get_shared_services()
 
-        for agent_name in self.agent_priority:
-            # ✅ Crear instancia FRESH del agente
-            agent = self.factory_registry.create_agent(agent_name, shared_services)
+        # Extraer atributos de ConversationState
+        current_agent = getattr(state, 'current_agent', None)
+        metadata = getattr(state, 'metadata', {})
 
-            # Verificar si puede manejar
-            if await agent.can_handle(message_data, conversation):
-                self.log_action("Agente seleccionado (fresh)", agent_name)
-                return agent
+        # Decisión basada en metadata y current_agent
+        selected_agent_name = None
 
-        return None
+        # 1. Primer contacto (current_agent=None) → ReceptionAgent
+        if current_agent is None:
+            selected_agent_name = "ReceptionAgent"
+
+        # 2. Metadata indica intención de conversión → LeadsalesAgent
+        elif metadata.get("conversion_intent") or metadata.get("lead_qualified"):
+            selected_agent_name = "LeadsalesAgent"
+
+        # 3. Metadata indica pregunta informativa → SupportAgent
+        elif metadata.get("last_intent") == "question":
+            selected_agent_name = "SupportAgent"
+
+        # 4. Mantener agente actual si existe (mapeo legacy → clase)
+        elif current_agent:
+            agent_map = {
+                "reception": "ReceptionAgent",
+                "support": "SupportAgent",
+                "leadsales": "LeadsalesAgent",
+                "ReceptionAgent": "ReceptionAgent",
+                "SupportAgent": "SupportAgent",
+                "LeadsalesAgent": "LeadsalesAgent"
+            }
+            selected_agent_name = agent_map.get(current_agent, "ReceptionAgent")
+
+        # 5. Fallback: ReceptionAgent
+        else:
+            selected_agent_name = "ReceptionAgent"
+
+        # Crear instancia fresh
+        try:
+            agent = self.factory_registry.create_agent(selected_agent_name, shared_services)
+            return agent
+        except Exception as e:
+            print(f"[FactoryOrchestrator] Error creando {selected_agent_name}: {e}")
+            # Fallback a ReceptionAgent si falla
+            return self.factory_registry.create_agent("ReceptionAgent", shared_services)
+
+    async def _select_agent(self, message_data: Dict[str, Any], conversation: Dict[str, Any]):
+        """Lógica avanzada para seleccionar agente basado en estado y metadata"""
+        shared_services = self._get_shared_services()
+        current_state = conversation.get("state", "NUEVO")
+        current_agent = conversation.get("current_agent")
+
+        # Decisión directa basada en estado de conversación
+        selected_agent_name = None
+
+        # 1. Primer contacto o estado NUEVO → ReceptionAgent (prioridad por defecto)
+        if current_state == "NUEVO" or current_agent is None:
+            selected_agent_name = "ReceptionAgent"
+            self.log_action("Selección", "Primer contacto → ReceptionAgent")
+
+        # 2. Estados de conversión (LeadsalesAgent)
+        elif current_state in ["FLUJO_COMPLETADO", "CAPTURANDO_DETALLES",
+                              "PROFUNDIZANDO_NECESIDAD", "CONFIRMANDO_INFORMACION",
+                              "PROCESANDO_CRM"]:
+            selected_agent_name = "LeadsalesAgent"
+            self.log_action("Selección", f"Estado conversión ({current_state}) → LeadsalesAgent")
+
+        # 3. Transferencia explícita → usar target agent
+        elif current_state == "TRANSFERIDO":
+            transfer_to = conversation.get("transfer_metadata", {}).get("to_agent")
+            if transfer_to in ["SupportAgent", "ReceptionAgent", "LeadsalesAgent"]:
+                selected_agent_name = transfer_to
+                self.log_action("Selección", f"Transferencia → {transfer_to}")
+            else:
+                # Fallback si transfer_to no es válido
+                selected_agent_name = "SupportAgent"
+                self.log_action("Selección", f"Transferencia inválida → SupportAgent (fallback)")
+
+        # 4. Estados activos de SupportAgent
+        elif current_state in ["CONSULTANDO", "CONSULTA_RAG", "ESPERANDO_PREGUNTA"]:
+            selected_agent_name = "SupportAgent"
+            self.log_action("Selección", f"Estado consulta ({current_state}) → SupportAgent")
+
+        # 5. Estados de ReceptionAgent
+        elif current_state in ["CAPTURANDO_NOMBRE", "CAPTURANDO_NECESIDAD",
+                              "CLASIFICANDO_INTENCION", "DECIDIENDO_RUTA"]:
+            selected_agent_name = "ReceptionAgent"
+            self.log_action("Selección", f"Estado recepción ({current_state}) → ReceptionAgent")
+
+        # 6. Mantener agente actual si ya está asignado
+        elif current_agent in ["SupportAgent", "ReceptionAgent", "LeadsalesAgent"]:
+            selected_agent_name = current_agent
+            self.log_action("Selección", f"Continuar en {current_agent} (estado: {current_state})")
+
+        # 7. Fallback: SupportAgent (más robusto que None)
+        else:
+            selected_agent_name = "SupportAgent"
+            self.log_action("Selección", f"Estado desconocido ({current_state}) → SupportAgent (fallback)")
+
+        # Crear instancia FRESH del agente seleccionado
+        try:
+            agent = self.factory_registry.create_agent(selected_agent_name, shared_services)
+            self.log_action("Agente creado (fresh)", selected_agent_name)
+            return agent
+        except Exception as e:
+            self.log_action("Error creando agente", f"{selected_agent_name}: {str(e)}")
+            return None
 
     async def _handle_agent_transfer(self, message_data: Dict[str, Any],
                                     conversation: Dict[str, Any], target_agent_name: str,

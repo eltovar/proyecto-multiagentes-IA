@@ -18,13 +18,7 @@ class DepartmentHandlerResult:
 
 
 class DepartmentHandler:
-    """
-    Handler para CAMINO 2: Redireccion a departamentos
-
-    Extrae logica de support_agent.py lineas ~393-484
-    Maneja routing a departamentos especificos
-    """
-
+    """Maneja consultas relacionadas a departamentos"""
     def __init__(self, llm_service, state_manager, config: Dict[str, Any]):
         self.llm = llm_service
         self.state = state_manager
@@ -38,14 +32,6 @@ class DepartmentHandler:
     ) -> DepartmentHandlerResult:
         """
         Procesa consulta sobre departamentos.
-
-        Args:
-            classification: Resultado de IntentClassifier
-            rag_result: Resultado de busqueda RAG
-            customer_name: Nombre del cliente
-
-        Returns:
-            DepartmentHandlerResult con informacion del departamento
         """
 
         # TODO: Implementar logica completa cuando se migre desde support_agent.py

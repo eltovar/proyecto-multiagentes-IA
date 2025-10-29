@@ -369,6 +369,66 @@ class LLMService: #Orquestador y unificador de classifier + generator
 
         return result
 
+    async def classify_with_system_prompt(
+        self,
+        user_message: str,
+        system_prompt: str,
+        expected_format: str = "json"
+    ) -> Dict[str, Any]:
+     
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message}
+        ]
+
+        try:
+            response = await self.api_client.client.chat.completions.create(
+                model=settings.llm_model_name,
+                messages=messages,
+                temperature=0.3,  # Baja temperatura para clasificación consistente
+                max_tokens=500
+            )
+
+            content = response.choices[0].message.content
+
+            # Validar formato JSON si es esperado
+            if expected_format == "json":
+                try:
+                    json.loads(content)  # Validar que es JSON válido
+                except json.JSONDecodeError as e:
+                    logger.warning(f"⚠️  Respuesta LLM no es JSON válido: {e}")
+                    # Intentar extraer JSON del texto
+                    content = self._extract_json_from_text(content)
+
+            return {
+                "response": content,
+                "model": response.model,
+                "tokens_used": response.usage.total_tokens,
+                "finish_reason": response.choices[0].finish_reason
+            }
+
+        except Exception as e:
+            logger.error(f"❌ Error en classify_with_system_prompt: {e}")
+            raise
+
+    def _extract_json_from_text(self, text: str) -> str:
+        """Intenta extraer JSON de texto que contiene otros caracteres"""
+        import re
+
+        # Buscar patrón JSON en el texto
+        json_pattern = r'\{[^{}]*\}'
+        matches = re.findall(json_pattern, text, re.DOTALL)
+
+        for match in matches:
+            try:
+                json.loads(match)  # Validar que es JSON válido
+                return match
+            except:
+                continue
+
+        # Si no se encontró JSON válido, retornar texto original
+        return text
+
     def health_check(self) -> Dict[str, Any]:
         if not self.api_client.initialized:
             return {"status": "unhealthy", "reason": "API no inicializada"}

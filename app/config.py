@@ -156,22 +156,8 @@ _DEFAULT_DEPARTMENT_CONTACTS = {
 }
 
 def get_department_contacts() -> Dict[str, Dict[str, Any]]:
-    """
-    Obtiene configuración de contactos de departamentos.
-
-    Prioridad:
-    1. Variable de entorno DEPARTMENT_CONTACTS_JSON (JSON completo)
-    2. Variables individuales DEPARTMENT_CONTACT_{DEPT}_* (por departamento)
-    3. Valores hardcoded por defecto (fallback seguro)
-
-    Returns:
-        Dict con configuración de departamentos
-
-    Logging:
-        - INFO: cuando usa ENV
-        - WARNING: cuando usa fallback (falta ENV)
-    """
-    # Opción 1: JSON completo desde ENV
+    """ Obtener diccionario de contactos de departamentos """
+    
     env_json = os.getenv("DEPARTMENT_CONTACTS_JSON")
     if env_json:
         try:
@@ -221,15 +207,7 @@ def get_department_contacts() -> Dict[str, Dict[str, Any]]:
 _DEPARTMENT_CONTACTS_CACHE = None
 
 def get_department_contact(dept: str) -> Optional[Dict[str, Any]]:
-    """
-    Obtiene configuración de un departamento específico.
-
-    Args:
-        dept: Nombre del departamento (ej: "propietarios", "contratos")
-
-    Returns:
-        Dict con configuración del departamento o None si no existe
-    """
+    """ Obtiene configuración de un departamento específico. """
     global _DEPARTMENT_CONTACTS_CACHE
 
     if _DEPARTMENT_CONTACTS_CACHE is None:

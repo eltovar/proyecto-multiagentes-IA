@@ -9,6 +9,8 @@ from .client import LeadsalesClient
 from .scoring import LeadScoringIntegrator
 from .metadata import LeadMetadataExtractor
 from .visualization import CRMVisualizationBuilder
+from app.services.client_classifier import ClientClassifier, ClientClassification
+from app.services.lead_analyzer import LeadAnalyzer, LeadAnalysis
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +27,13 @@ class LeadsalesService:
         self.scoring = LeadScoringIntegrator()
         self.metadata_extractor = LeadMetadataExtractor()
         self.visualization = CRMVisualizationBuilder()
+        self.client_classifier = ClientClassifier()
+        self.lead_analyzer = LeadAnalyzer()  # ✅ NUEVO (PR005)
 
         self.is_demo_mode = self.client.is_demo_mode
         self.initialized = True  # Compatibilidad con código anterior
 
-        logger.info("LeadsalesService inicializado (4 componentes cargados)")
+        logger.info("✅ LeadsalesService inicializado (6 componentes cargados)")
 
     def initialize(self) -> bool:
         """
@@ -42,17 +46,7 @@ class LeadsalesService:
         return self.initialized
 
     def _score_lead(self, customer_needs: str, additional_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Calcula scoring de un lead (backward compatibility).
-        Wrapper que delega a self.scoring.score_lead().
-
-        Args:
-            customer_needs: Descripción de necesidades del cliente
-            additional_data: Metadata adicional opcional
-
-        Returns:
-            Dict con quality_score, interest_score, conversion_probability, tags, priority, confidence, reasoning
-        """
+        """Calcula scoring de un lead (backward compatibility) """
         return self.scoring.score_lead(customer_needs, additional_data)
 
     async def create_lead(
@@ -67,121 +61,140 @@ class LeadsalesService:
 
         Orquesta:
         1. Scoring (quality, tags, priority)
-        2. Metadata extraction (location, budget, etc.)
-        3. Data enrichment (normalizacion, timestamps)
-        4. Visualization generation (CRM preview)
-        5. API call (produccion) o mock (demo)
-
-        Args:
-            customer_name: Nombre del cliente
-            whatsapp: Numero de WhatsApp
-            customer_needs: Necesidades del cliente
-            additional_data: Metadata adicional opcional
-
-        Returns:
-            Dict con lead creado + visualizacion
+        2. Client classification (profile, sophistication)
+        3. Metadata extraction (location, budget, etc.)
+        4. Lead analysis (composite score, insights, recommendations) ✅ NUEVO
+        5. Data enrichment (normalización, timestamps)
+        6. Visualization generation (CRM preview enriquecido) ✅ MEJORADO
+        7. API call (producción) o mock (demo)
         """
-        logger.info(f"Creando lead: {customer_name} ({whatsapp})")
+        logger.info(f"📝 Creando lead: {customer_name} ({whatsapp})")
 
         # 1. Calcular scoring
         scoring_result = self.scoring.score_lead(customer_needs, additional_data)
 
-        # 2. Extraer metadata
+        # 2. Clasificar cliente
+        classification_result = await self.client_classifier.classify(
+            customer_message=customer_needs,
+            additional_context=additional_data
+        )
+
+        # 3. Extraer metadata
         metadata = self.metadata_extractor.extract_metadata(customer_needs, additional_data or {})
 
-        # 3. Enriquecer datos
+        # 4. Analizar lead (NUEVO) ✅
+        lead_analysis = self.lead_analyzer.analyze(
+            scoring_result=scoring_result,
+            classification_result=classification_result.__dict__ if hasattr(classification_result, '__dict__') else classification_result,
+            metadata=metadata
+        )
+
+        logger.info(
+            f"🎯 Lead analizado: Segment={lead_analysis.lead_segment}, "
+            f"Composite Score={lead_analysis.composite_score:.1f}, "
+            f"Conversion Prob={lead_analysis.conversion_probability:.2f}"
+        )
+
+        # 5. Enriquecer datos (ahora incluye análisis completo) ✅
         enriched_data = self.metadata_extractor.enrich_customer_data(
             customer_name,
             whatsapp,
             customer_needs,
             scoring_result,
-            metadata
+            metadata,
+            classification_result,
+            lead_analysis  # ✅ NUEVO parámetro
         )
 
-        # 4. Modo demo o produccion
+        # 6. Modo demo o produccion
         if self.is_demo_mode:
-            return self._create_lead_demo(enriched_data)
+            return self._create_lead_demo(enriched_data, lead_analysis)
         else:
-            return await self._create_lead_production(enriched_data)
+            return await self._create_lead_production(enriched_data, lead_analysis)
 
-    async def _create_lead_production(self, enriched_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _create_lead_production(
+        self,
+        enriched_data: Dict[str, Any],
+        lead_analysis: LeadAnalysis  # ✅ NUEVO parámetro
+    ) -> Dict[str, Any]:
         """Crea lead en CRM real (modo produccion)"""
-        # Preparar payload para API
+        # Preparar payload para API (incluye análisis)
         payload = {
             "customer_name": enriched_data["name"],
             "whatsapp": enriched_data["whatsapp"],
             "customer_needs": enriched_data["needs"],
             "source": "whatsapp_bot",
-            "priority": enriched_data["priority"],
+
+            # Scoring
+            "priority": lead_analysis.priority,  # ✅ Prioridad ajustada por perfil
+            "priority_numeric": lead_analysis.priority_numeric,  # ✅ NUEVO
             "quality_score": enriched_data["quality_score"],
+            "composite_score": lead_analysis.composite_score,  # ✅ NUEVO
             "tags": enriched_data["tags"],
+
+            # Classification
+            "profile": lead_analysis.profile,
+            "sophistication_level": lead_analysis.sophistication_level,
+
+            # Analysis
+            "lead_segment": lead_analysis.lead_segment,  # ✅ NUEVO
+            "conversion_probability": lead_analysis.conversion_probability,  # ✅ NUEVO
+            "estimated_value": lead_analysis.estimated_value,  # ✅ NUEVO
+
+            # Metadata
             "metadata": enriched_data["metadata"]
         }
 
         # Enviar a API
         api_response = await self.client.create_lead_api(payload)
 
-        # Construir visualizacion
-        preview = self.visualization.build_crm_preview(enriched_data)
+        # Construir visualizacion enriquecida
+        preview = self.visualization.build_crm_preview(
+            enriched_data,
+            lead_analysis  # ✅ NUEVO parámetro
+        )
 
         return {
             "lead_id": api_response["lead_id"],
             "status": "created",
             "customer_data": enriched_data,
+            "lead_analysis": lead_analysis.__dict__,  # ✅ NUEVO
             "crm_preview": preview,
             "mode": "production"
         }
 
-    def _create_lead_demo(self, enriched_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Crea simulacion de lead (modo demo)"""
-        # Construir simulacion completa
-        simulation = self.visualization.build_demo_simulation(enriched_data)
+    def _create_lead_demo(
+        self,
+        enriched_data: Dict[str, Any],
+        lead_analysis: LeadAnalysis  # ✅ NUEVO parámetro
+    ) -> Dict[str, Any]:
+        """Crea simulacion de lead (modo demo) con análisis enriquecido"""
+        # Construir simulacion completa con análisis
+        simulation = self.visualization.build_demo_simulation(
+            enriched_data,
+            lead_analysis  # ✅ NUEVO parámetro
+        )
 
-        logger.info("Lead demo creado (simulacion)")
+        logger.info("✅ Lead demo creado (simulacion enriquecida)")
 
         return simulation
 
     async def get_lead(self, lead_id: str) -> Dict[str, Any]:
-        """
-        Obtiene lead desde CRM.
-
-        Args:
-            lead_id: ID del lead
-
-        Returns:
-            Dict con datos del lead
-        """
+        """ Obtiene lead desde CRM. """
         if self.is_demo_mode:
             raise RuntimeError("get_lead() no disponible en modo demo")
 
         return await self.client.get_lead_api(lead_id)
 
     async def update_lead(self, lead_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Actualiza lead en CRM.
-
-        Args:
-            lead_id: ID del lead
-            update_data: Campos a actualizar
-
-        Returns:
-            Dict con lead actualizado
-        """
+        """ Actualiza lead en CRM. """
         if self.is_demo_mode:
             raise RuntimeError("update_lead() no disponible en modo demo")
 
         return await self.client.update_lead_api(lead_id, update_data)
 
     async def list_leads(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """
-        Lista leads desde CRM.
-
-        Args:
-            filters: Filtros de busqueda
-
-        Returns:
-            Lista de leads
-        """
+        """ Lista leads desde CRM """
         if self.is_demo_mode:
             raise RuntimeError("list_leads() no disponible en modo demo")
 

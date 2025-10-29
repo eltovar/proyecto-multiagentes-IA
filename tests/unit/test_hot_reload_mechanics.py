@@ -180,7 +180,6 @@ class TestHotReloadMechanics:
         with patch.object(orchestrator.factory_registry, 'create_agent') as mock_create:
             mock_agent = Mock()
             mock_agent.name = "ReceptionAgent"
-            mock_agent.can_handle = AsyncMock(return_value=True)
             mock_create.return_value = mock_agent
 
             message_data = {'from': 'user123', 'text': {'body': 'test'}}

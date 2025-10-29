@@ -26,12 +26,6 @@ class ContractHandler:
     """
 
     def __init__(self, llm_service, state_manager, config: Dict[str, str]):
-        """
-        Args:
-            llm_service: Servicio LLM (para futuras mejoras)
-            state_manager: State Manager para persistencia
-            config: Configuración con links (youtube_link, solicitud_gratis_link)
-        """
         self.llm = llm_service
         self.state = state_manager
         self.config = config
@@ -45,16 +39,12 @@ class ContractHandler:
         conversation: Dict[str, Any],
         interaction_count: int
     ) -> ContractResult:
-        """
-        Pregunta obligatoria 1: Contrato con inmobiliaria
-
-        Extraído de: _handle_pregunta_contrato_inmobiliaria (líneas 304-314)
-        """
+        """ Pregunta obligatoria 1: Contrato con inmobiliaria """
         response = "¿Actualmente tienes un contrato vigente con alguna inmobiliaria?"
-
+ 
         return ContractResult(
             response=response,
-            next_state="STATE_PREGUNTA_CONTRATO_INMOBILIARIA",
+            next_state="PREGUNTA_CONTRATO_INMOBILIARIA",
             metadata={
                 "interaction_count": interaction_count,
                 "last_message_at": datetime.now().isoformat()
@@ -69,10 +59,6 @@ class ContractHandler:
     ) -> ContractResult:
         """
         Procesa respuesta sobre contrato inmobiliaria.
-
-        Extraído de: _handle_respuesta_contrato (líneas 316-343)
-
-        Returns:
             - Si tiene contrato → pregunta cuál inmobiliaria
             - Si no tiene → continúa a pregunta Libertador
         """
@@ -89,7 +75,7 @@ class ContractHandler:
             # No tiene contrato -> Continuar a solicitud Libertador
             return ContractResult(
                 response="Perfecto. ¿Ya tienes una solicitud aprobada por EL LIBERTADOR?",
-                next_state="STATE_PREGUNTA_SOLICITUD_LIBERTADOR",
+                next_state="PREGUNTA_SOLICITUD_LIBERTADOR",
                 metadata={
                     "tiene_contrato_inmobiliaria": False,
                     "interaction_count": interaction_count,
@@ -100,7 +86,7 @@ class ContractHandler:
             # Tiene contrato -> Preguntar cuál inmobiliaria
             return ContractResult(
                 response="¿Con cuál inmobiliaria tienes el contrato?",
-                next_state="STATE_PREGUNTA_CUAL_INMOBILIARIA",
+                next_state="PREGUNTA_CUAL_INMOBILIARIA",
                 metadata={
                     "tiene_contrato_inmobiliaria": True,
                     "interaction_count": interaction_count,
@@ -111,7 +97,7 @@ class ContractHandler:
             # Caso ambiguo -> Asumir no tiene contrato
             return ContractResult(
                 response="Perfecto. ¿Ya tienes una solicitud aprobada por EL LIBERTADOR?",
-                next_state="STATE_PREGUNTA_SOLICITUD_LIBERTADOR",
+                next_state="PREGUNTA_SOLICITUD_LIBERTADOR",
                 metadata={
                     "tiene_contrato_inmobiliaria": False,
                     "interaction_count": interaction_count,
@@ -132,7 +118,7 @@ class ContractHandler:
         """
         return ContractResult(
             response="Entendido. ¿Ya tienes una solicitud aprobada por EL LIBERTADOR?",
-            next_state="STATE_PREGUNTA_SOLICITUD_LIBERTADOR",
+            next_state="PREGUNTA_SOLICITUD_LIBERTADOR",
             metadata={
                 "inmobiliaria_actual": message.strip(),
                 "interaction_count": interaction_count,
@@ -147,11 +133,6 @@ class ContractHandler:
         interaction_count: int
     ) -> ContractResult:
         """
-        Procesa respuesta sobre solicitud El Libertador.
-
-        Extraído de: _handle_respuesta_solicitud_libertador (líneas 359-392)
-
-        Returns:
             - Si no tiene → muestra orientación con links
             - Si tiene → continúa directamente
         """
@@ -171,7 +152,7 @@ Solicitud GRATIS: {self.solicitud_gratis_link}
 
             return ContractResult(
                 response=response,
-                next_state="STATE_PREGUNTA_FECHA_NECESIDAD",
+                next_state="PREGUNTA_FECHA_NECESIDAD",
                 metadata={
                     "tiene_solicitud_libertador": False,
                     "interaction_count": interaction_count,
@@ -182,10 +163,50 @@ Solicitud GRATIS: {self.solicitud_gratis_link}
             # Sí tiene solicitud -> Continuar directamente
             return ContractResult(
                 response="Excelente. ¿Para que fecha necesitas el nuevo inmueble?",
-                next_state="STATE_PREGUNTA_FECHA_NECESIDAD",
+                next_state="PREGUNTA_FECHA_NECESIDAD",
                 metadata={
                     "tiene_solicitud_libertador": True,
                     "interaction_count": interaction_count,
                     "last_message_at": datetime.now().isoformat()
                 }
             )
+
+    async def handle(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> ContractResult:
+        """
+        Método principal del handler. Determina la acción a tomar basada en el estado
+        para completar la sección de contratos y El Libertador.
+
+        Args:
+            message_data: Datos del mensaje de WhatsApp
+            conversation: Estado de la conversación
+
+        Returns:
+            ContractResult con respuesta y transición de estado
+        """
+        current_state = conversation.get("state")
+        message = message_data.get("text", {}).get("body", "")
+        interaction_count = conversation.get("interaction_count", 0) + 1
+
+        # 1. ESTADO NOMBRE_OBTENIDO: Iniciar el flujo de contrato
+        # Viene del GreetingHandler y es el punto de entrada para este handler
+        if current_state == "NOMBRE_OBTENIDO":
+            return await self.handle_contract_question(conversation, interaction_count)
+
+        # 2. ESTADO PREGUNTA_CONTRATO_INMOBILIARIA: Procesar respuesta Sí/No de contrato
+        if current_state == "PREGUNTA_CONTRATO_INMOBILIARIA":
+            return await self.handle_contract_response(message, conversation, interaction_count)
+
+        # 3. ESTADO PREGUNTA_CUAL_INMOBILIARIA: Capturar nombre de la inmobiliaria
+        if current_state == "PREGUNTA_CUAL_INMOBILIARIA":
+            return await self.handle_which_company_response(message, conversation, interaction_count)
+
+        # 4. ESTADO PREGUNTA_SOLICITUD_LIBERTADOR: Procesar respuesta Sí/No de El Libertador
+        if current_state == "PREGUNTA_SOLICITUD_LIBERTADOR":
+            return await self.handle_libertador_response(message, conversation, interaction_count)
+
+        # 5. Fallback: Si se llama en un estado que no debe manejar (ej: ya se preguntó todo)
+        return ContractResult(
+            response="Ya capturamos la información de tu contrato. Por favor, responde la última pregunta que te hice sobre la fecha que necesitas el inmueble.",
+            next_state=current_state,
+            metadata={}
+        )

@@ -70,8 +70,8 @@ En breve, uno de nuestros asesores te contactará desde nuestro WhatsApp oficial
 
         return LeadCaptureResult(
             response=response,
-            next_state="STATE_FLUJO_COMPLETADO",
-            transfer_to="LeadsalesAgent",
+            next_state="FLUJO_COMPLETADO",
+            transfer_to="leadsales",
             metadata={
                 "fecha_necesidad": message.strip(),
                 "interaction_count": interaction_count,
@@ -102,7 +102,7 @@ En breve, uno de nuestros asesores te contactará desde nuestro WhatsApp oficial
         return LeadCaptureResult(
             response=response,
             next_state="LIMITE_ALCANZADO",
-            transfer_to="LeadsalesAgent",
+            transfer_to="leadsales",
             metadata={
                 "interaction_count": interaction_count,
                 "last_message_at": datetime.now().isoformat()
@@ -122,10 +122,55 @@ En breve, uno de nuestros asesores te contactará desde nuestro WhatsApp oficial
             Mensaje recordatorio
         """
         flujo_messages = {
-            "STATE_POLITICAS_PRESENTADAS": "Primero necesito tu nombre para continuar. ¿Me lo puedes compartir?",
-            "STATE_RECOPILANDO_NOMBRE": "Tu nombre es importante para la atención personalizada. ¿Cuál es?",
-            "STATE_PREGUNTA_CONTRATO_INMOBILIARIA": "Por favor responde: ¿Tienes contrato vigente con alguna inmobiliaria?",
-            "STATE_PREGUNTA_SOLICITUD_LIBERTADOR": "Necesito saber: ¿Ya tienes solicitud aprobada por EL LIBERTADOR?",
-            "STATE_PREGUNTA_FECHA_NECESIDAD": "¿Para que fecha necesitas el nuevo inmueble?"
+            "POLITICAS_PRESENTADAS": "Primero necesito tu nombre para continuar. ¿Me lo puedes compartir?",
+            "RECOPILANDO_NOMBRE": "Tu nombre es importante para la atención personalizada. ¿Cuál es?",
+            "PREGUNTA_CONTRATO_INMOBILIARIA": "Por favor responde: ¿Tienes contrato vigente con alguna inmobiliaria?",
+            "PREGUNTA_SOLICITUD_LIBERTADOR": "Necesito saber: ¿Ya tienes solicitud aprobada por EL LIBERTADOR?",
+            "PREGUNTA_FECHA_NECESIDAD": "¿Para que fecha necesitas el nuevo inmueble?"
         }
         return flujo_messages.get(current_state, "Sigamos con el proceso paso a paso.")
+
+    async def handle(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> LeadCaptureResult:
+        """
+        Método principal del handler. Determina la acción a tomar basada en el estado
+        para completar la captura de fecha y ejecutar la transferencia.
+
+        Args:
+            message_data: Datos del mensaje de WhatsApp
+            conversation: Estado de la conversación
+
+        Returns:
+            LeadCaptureResult con respuesta, estado y transferencia
+        """
+        current_state = conversation.get("state")
+        message = message_data.get("text", {}).get("body", "")
+        interaction_count = conversation.get("interaction_count", 0) + 1
+
+        # 1. ESTADO PREGUNTA_FECHA_NECESIDAD: Capturar la fecha y finalizar el flujo
+        # Viene del ContractHandler y es el punto de finalización para la Recepción
+        if current_state == "PREGUNTA_FECHA_NECESIDAD":
+            # Nota: No se usa LLM para validar/extraer fecha en esta versión,
+            # simplemente se guarda el mensaje del usuario como la fecha.
+            return await self.handle_date_response(message, conversation, interaction_count)
+
+        # 2. Fallback: Si el usuario responde cuando el flujo ya debería haber terminado,
+        # o si el router lo envía aquí por error.
+
+        # Intentar guiar al usuario si está atascado en un estado anterior (usando get_flow_reminder)
+        # Esto es útil si el router mapea estados de otros handlers a este para manejo genérico
+        # de mensajes fuera de flujo.
+        if current_state not in ["FLUJO_COMPLETADO", "LIMITE_ALCANZADO", "TRANSFERIDO"]:
+            reminder_response = self.get_flow_reminder(current_state)
+
+            # Si el recordatorio devuelve un mensaje específico para el estado, se devuelve.
+            if reminder_response != "Sigamos con el proceso paso a paso.":
+                return LeadCaptureResult(
+                    response=reminder_response,
+                    next_state=current_state,
+                    transfer_to=None,
+                    metadata={"interaction_count": interaction_count}
+                )
+
+        # 3. Flujo completado / Estado final
+        # Si el flujo ya está completo o en un estado final, se transfiere al asesor humano.
+        return await self.handle_interaction_limit(conversation, interaction_count)

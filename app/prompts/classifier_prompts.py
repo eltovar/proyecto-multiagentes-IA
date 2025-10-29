@@ -4,10 +4,6 @@ Prompts para clasificación de mensajes (LLMClassifier).
 Este módulo contiene los prompts utilizados por llm_classifier.py para:
 - Clasificación de intención (question, need, greeting, unclear)
 - Análisis de sentimiento (positivo, negativo, neutral)
-
-Autor: Sistema centralizado de prompts
-Fecha: 2025-10-16
-Relacionado: PR001 - Centralización de Prompts LLM
 """
 
 # ============================================================================

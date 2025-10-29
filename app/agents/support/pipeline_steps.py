@@ -13,9 +13,7 @@ from app.agents.support.handlers.general import GeneralHandler
 
 class IntentClassifierStep(PipelineStep):
     """
-    Paso 1: Clasificar intencin del usuario con LLM.
-
-    Output: context.results["classification"]
+    Paso 1: Clasificar intencin del usuario con LLM."]
     """
 
     def __init__(self, classifier: IntentClassifier):
@@ -57,8 +55,6 @@ class RAGSearchStep(PipelineStep):
     """
     Paso 2: Buscar contexto relevante en RAG.
 
-    Input: context.results["classification"]
-    Output: context.results["rag_result"]
     """
 
     def __init__(self, rag_system):
@@ -77,7 +73,7 @@ class RAGSearchStep(PipelineStep):
         # Buscar en RAG si est disponible
         if self.rag and hasattr(self.rag, 'search_context'):
             try:
-                rag_result = await self.rag.search_context(message)
+                rag_result = self.rag.search_context(message)
                 context.set_result("rag_result", rag_result)
                 print(f"[RAGSearchStep] Found {len(rag_result.get('documents', []))} documents")
             except Exception as e:
@@ -102,8 +98,6 @@ class RoutingDecisionStep(PipelineStep):
     """
     Paso 3: Decidir routing basado en clasificacin.
 
-    Input: context.results["classification"]
-    Output: context.results["routing_path"]
     """
 
     def __init__(self):
@@ -146,12 +140,6 @@ class RoutingDecisionStep(PipelineStep):
 class ResponseGeneratorStep(PipelineStep):
     """
     Paso 4: Generar respuesta usando handler apropiado.
-
-    Input:
-        - context.results["routing_path"]
-        - context.results["classification"]
-        - context.results["rag_result"]
-    Output: context.results["final_response"]
     """
 
     def __init__(

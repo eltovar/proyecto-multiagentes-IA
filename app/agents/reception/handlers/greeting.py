@@ -56,10 +56,9 @@ Al escribir aceptas nuestras Politicas de Privacidad ({self.politicas_link})
 
         return GreetingResult(
             response=response,
-            next_state="STATE_POLITICAS_PRESENTADAS",
+            next_state="POLITICAS_PRESENTADAS",
             metadata={
                 "interaction_count": interaction_count,
-                "state": "STATE_RECOPILANDO_NOMBRE",  # Estado interno para tracking
                 "last_message_at": datetime.now().isoformat()
             }
         )
@@ -76,9 +75,6 @@ Al escribir aceptas nuestras Politicas de Privacidad ({self.politicas_link})
         Extraído de:
         - _handle_recopilar_nombre_llm_fallback (líneas 242-252)
         - _handle_validar_nombre_llm_fallback (líneas 254-265)
-
-        Args:
-            attempt: 1 = primera insistencia, 2 = segunda insistencia
         """
         if attempt == 1:
             response = "Para brindarte la mejor atención, necesito tu nombre. ¿Podrías indicármelo por favor?"
@@ -87,7 +83,7 @@ Al escribir aceptas nuestras Politicas de Privacidad ({self.politicas_link})
 
         return GreetingResult(
             response=response,
-            next_state="STATE_RECOPILANDO_NOMBRE",
+            next_state="RECOPILANDO_NOMBRE",
             metadata={
                 "interaction_count": interaction_count,
                 "last_message_at": datetime.now().isoformat(),
@@ -127,7 +123,7 @@ Al escribir aceptas nuestras Politicas de Privacidad ({self.politicas_link})
 
         return GreetingResult(
             response=response,
-            next_state="STATE_NOMBRE_OBTENIDO",
+            next_state="NOMBRE_OBTENIDO",
             metadata=metadata
         )
 

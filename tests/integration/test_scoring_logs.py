@@ -2,128 +2,116 @@
 Test de Logs: Validar que los logs de scoring se generan correctamente
 """
 import pytest
-import io
-import sys
+import re
+import logging
 from app.services.leadsales import LeadsalesService
 
 
 class TestScoringLogs:
     """Tests de validación de logs para el sistema de scoring"""
 
-    def test_initialization_logs(self, capsys):
+    def test_initialization_logs(self, caplog):
         """Verificar logs de inicialización del servicio"""
+        caplog.set_level(logging.INFO)
         service = LeadsalesService()
         service.initialize()
-
-        captured = capsys.readouterr()
 
         # Verificar log de inicialización de componentes
-        assert "[LeadsalesService] Scoring components initialized:" in captured.out
-        assert "1 quality_scorer" in captured.out
-        assert "4 taggers" in captured.out
-        assert "1 priority_classifier" in captured.out
+        assert "LeadsalesService inicializado" in caplog.text
+        assert "6 componentes cargados" in caplog.text
 
-        # Verificar log de servicio inicializado
-        assert "[LeadsalesService] Servicio inicializado correctamente" in captured.out
-
-    def test_scoring_execution_logs(self, capsys):
+    def test_scoring_execution_logs(self, caplog):
         """Verificar logs cuando se ejecuta scoring"""
+        caplog.set_level(logging.INFO)
         service = LeadsalesService()
         service.initialize()
 
-        # Limpiar output anterior
-        capsys.readouterr()
+        # Limpiar logs anteriores
+        caplog.clear()
 
         # Ejecutar scoring
         result = service._score_lead("Busco apartamento urgente", {})
 
-        captured = capsys.readouterr()
-
         # Verificar log de scoring ejecutado
-        assert "[LeadsalesService] Lead scored:" in captured.out
-        assert "quality=" in captured.out
-        assert "tags=" in captured.out
-        assert "priority=" in captured.out
+        assert "[LeadsalesService] Lead scored:" in caplog.text
+        assert "quality=" in caplog.text
+        assert "tags=" in caplog.text
+        assert "priority=" in caplog.text
 
-    def test_scoring_log_format_high_quality(self, capsys):
+    def test_scoring_log_format_high_quality(self, caplog):
         """Verificar formato del log para lead de alta calidad"""
+        caplog.set_level(logging.INFO)
         service = LeadsalesService()
         service.initialize()
 
-        capsys.readouterr()
+        caplog.clear()
 
         # Lead de alta calidad
         service._score_lead("Urgente busco apartamento para comprar tengo 500 millones", {})
 
-        captured = capsys.readouterr()
-
         # Debe mostrar quality alto, varios tags y prioridad ALTA
-        assert "quality=100" in captured.out or "quality=9" in captured.out  # >= 90
-        assert "tags=" in captured.out
-        assert "priority=ALTA" in captured.out
+        assert "quality=100" in caplog.text or "quality=9" in caplog.text  # >= 90
+        assert "tags=" in caplog.text
+        assert "priority=ALTA" in caplog.text
 
-    def test_scoring_log_format_medium_quality(self, capsys):
+    def test_scoring_log_format_medium_quality(self, caplog):
         """Verificar formato del log para lead de calidad media"""
+        caplog.set_level(logging.INFO)
         service = LeadsalesService()
         service.initialize()
 
-        capsys.readouterr()
+        caplog.clear()
 
         # Lead de calidad media
         service._score_lead("Busco apartamento", {})
 
-        captured = capsys.readouterr()
-
         # Debe mostrar quality y priority
-        log_line = captured.out
-        assert "[LeadsalesService] Lead scored:" in log_line
-        assert "quality=" in log_line
-        assert "tags=" in log_line
-        assert "priority=MEDIA" in log_line
+        assert "[LeadsalesService] Lead scored:" in caplog.text
+        assert "quality=" in caplog.text
+        assert "tags=" in caplog.text
+        assert "priority=MEDIA" in caplog.text
 
-    def test_scoring_log_shows_tag_count(self, capsys):
+    def test_scoring_log_shows_tag_count(self, caplog):
         """Verificar que el log muestra el número de tags"""
+        caplog.set_level(logging.INFO)
         service = LeadsalesService()
         service.initialize()
 
-        capsys.readouterr()
+        caplog.clear()
 
         # Lead con múltiples tags
         service._score_lead("Quiero comprar casa urgente tengo presupuesto", {})
 
-        captured = capsys.readouterr()
-
         # Debe mostrar número de tags (no los tags mismos)
-        assert "tags=" in captured.out
+        assert "tags=" in caplog.text
         # Extraer número de tags del log
-        import re
-        match = re.search(r'tags=(\d+)', captured.out)
+        match = re.search(r'tags=(\d+)', caplog.text)
         assert match is not None
         tag_count = int(match.group(1))
         assert tag_count >= 1  # Al menos un tag detectado
 
-    def test_scoring_log_priority_short_format(self, capsys):
+    def test_scoring_log_priority_short_format(self, caplog):
         """Verificar que el log muestra prioridad en formato corto"""
+        caplog.set_level(logging.INFO)
         service = LeadsalesService()
         service.initialize()
 
-        capsys.readouterr()
+        caplog.clear()
 
         # Lead urgente
         service._score_lead("URGENTE necesito apartamento YA", {})
 
-        captured = capsys.readouterr()
-
         # Debe mostrar solo "ALTA" no "ALTA - Contacto inmediato"
-        assert "priority=ALTA" in captured.out
-        assert " - " not in captured.out.split("priority=")[1].split(",")[0]
+        assert "priority=ALTA" in caplog.text
+        assert " - " not in caplog.text.split("priority=")[1].split(",")[0]
 
-    def test_multiple_scoring_logs(self, capsys):
+    def test_multiple_scoring_logs(self, caplog):
         """Verificar logs de múltiples ejecuciones de scoring"""
+        caplog.set_level(logging.INFO)
         service = LeadsalesService()
         service.initialize()
 
-        capsys.readouterr()
+        caplog.clear()
 
         # Ejecutar múltiples scorings
         messages = [
@@ -135,18 +123,17 @@ class TestScoringLogs:
         for message in messages:
             service._score_lead(message, {})
 
-        captured = capsys.readouterr()
-
         # Debe haber 3 logs de scoring
-        log_count = captured.out.count("[LeadsalesService] Lead scored:")
+        log_count = caplog.text.count("[LeadsalesService] Lead scored:")
         assert log_count == 3
 
-    def test_scoring_log_with_additional_data(self, capsys):
+    def test_scoring_log_with_additional_data(self, caplog):
         """Verificar logs cuando se usa additional_data"""
+        caplog.set_level(logging.INFO)
         service = LeadsalesService()
         service.initialize()
 
-        capsys.readouterr()
+        caplog.clear()
 
         # Scoring con additional_data (Libertador aprobado)
         service._score_lead(
@@ -154,44 +141,36 @@ class TestScoringLogs:
             {"tiene_solicitud_libertador": True}
         )
 
-        captured = capsys.readouterr()
-
         # Debe generar log normalmente
-        assert "[LeadsalesService] Lead scored:" in captured.out
-        assert "quality=" in captured.out
-        assert "tags=" in captured.out
+        assert "[LeadsalesService] Lead scored:" in caplog.text
+        assert "quality=" in caplog.text
+        assert "tags=" in caplog.text
 
-    def test_no_duplicate_initialization_logs(self, capsys):
+    def test_no_duplicate_initialization_logs(self, caplog):
         """Verificar que no se duplican logs de inicialización"""
+        caplog.set_level(logging.INFO)
         service = LeadsalesService()
 
-        captured = capsys.readouterr()
-
         # Debe haber solo UN log de inicialización de componentes
-        init_count = captured.out.count("[LeadsalesService] Scoring components initialized:")
+        init_count = caplog.text.count("LeadsalesService inicializado (6 componentes cargados)")
         assert init_count == 1
 
-    def test_log_ordering(self, capsys):
-        """Verificar orden correcto de logs"""
+    def test_log_ordering(self, caplog):
+        """Verificar que logs de inicialización aparecen correctamente"""
+        caplog.set_level(logging.INFO)
         service = LeadsalesService()
         service.initialize()
 
-        captured = capsys.readouterr()
+        # Verificar que el log de componentes inicializados existe
+        assert "LeadsalesService inicializado" in caplog.text
 
-        # Los logs deben aparecer en este orden
-        log_lines = captured.out.split('\n')
+        # Verificar que aparece en las primeras líneas (durante __init__)
+        log_lines = caplog.text.split('\n')
+        component_init_found = False
 
-        # Encontrar índices de logs clave
-        component_init_idx = None
-        service_init_idx = None
+        for line in log_lines:
+            if "LeadsalesService inicializado" in line:
+                component_init_found = True
+                break
 
-        for i, line in enumerate(log_lines):
-            if "Scoring components initialized" in line:
-                component_init_idx = i
-            if "Servicio inicializado correctamente" in line:
-                service_init_idx = i
-
-        # Componentes se inicializan ANTES que el servicio
-        # (en __init__ antes de initialize())
-        assert component_init_idx is not None
-        assert service_init_idx is not None
+        assert component_init_found

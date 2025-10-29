@@ -18,11 +18,7 @@ class AgentManager:
     """
 
     def __init__(self, orchestrator: Optional[FactoryOrchestrator] = None):
-        """
-        Args:
-            orchestrator: FactoryOrchestrator opcional (crea uno si no se provee)
-        """
-        # Si no se provee orchestrator, crear uno nuevo
+        
         if orchestrator is None:
             self.orchestrator = FactoryOrchestrator()
         else:
@@ -36,12 +32,7 @@ class AgentManager:
         logger.info("[AgentManager] Inicializado con Factory Pattern")
 
     def register_agent(self, name: str, agent) -> None:
-        """
-        LEGACY METHOD: Registra un agente manualmente.
-
-        Deprecado: Los agentes ahora se crean dinámicamente via Factory.
-        Este método se mantiene por compatibilidad.
-        """
+     
         self.agents[name] = agent
         logger.info(f"Agente '{name}' registrado (legacy mode)")
 

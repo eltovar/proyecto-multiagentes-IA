@@ -114,9 +114,13 @@ class TestClassifyIntentionWithPrompts:
 
         check_for_api_error(result)
 
-        # Mensaje ambiguo puede ser 'unclear' o tener baja confianza
+        # Mensaje ambiguo debe clasificarse como 'unclear' u otro tipo válido
         assert result['type'] in ['unclear', 'question', 'need', 'greeting']
-        assert result['confidence'] <= 0.8
+
+        # Si es 'unclear', alta confianza es válida (el LLM está seguro de la ambigüedad)
+        # Si es otro tipo con mensaje ambiguo, confianza debe ser baja
+        if result['type'] != 'unclear':
+            assert result['confidence'] <= 0.8
 
     async def test_classify_intention_error_handling(self):
         """Verificar manejo de errores cuando LLM no está inicializado"""

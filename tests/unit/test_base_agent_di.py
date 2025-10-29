@@ -12,9 +12,6 @@ from app.agents.base_agent import BaseAgent
 
 class MockAgent(BaseAgent):
     """Agente mock para testing"""
-    async def can_handle(self, message_data, conversation):
-        return True
-
     async def process_message(self, message_data, conversation):
         return {"response": "test"}
 

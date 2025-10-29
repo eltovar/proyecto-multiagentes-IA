@@ -46,15 +46,7 @@ class ConversationStateMachine:
     """
 
     def __init__(self):
-        """
-        Define el grafo de transiciones del flujo obligatorio.
-
-        Flujo normal:
-        NUEVO → POLITICAS_PRESENTADAS → RECOPILANDO_NOMBRE → NOMBRE_OBTENIDO
-        → PREGUNTA_CONTRATO_INMOBILIARIA → [PREGUNTA_CUAL_INMOBILIARIA]
-        → PREGUNTA_SOLICITUD_LIBERTADOR → PREGUNTA_FECHA_NECESIDAD
-        → FLUJO_COMPLETADO → TRANSFERIDO
-        """
+        
         self.transitions: Dict[ReceptionState, List[ReceptionState]] = {
             # Inicio del flujo
             ReceptionState.NUEVO: [
@@ -118,16 +110,7 @@ class ConversationStateMachine:
         from_state: str,
         to_state: str
     ) -> bool:
-        """
-        Valida si la transición entre estados es permitida.
-
-        Args:
-            from_state: Estado actual (string)
-            to_state: Estado destino (string)
-
-        Returns:
-            True si la transición es válida
-        """
+        """ Valida si la transición entre estados es permitida """
         current = ReceptionState.from_string(from_state)
         next_state = ReceptionState.from_string(to_state)
 
@@ -143,15 +126,7 @@ class ConversationStateMachine:
         return next_state in allowed_transitions
 
     def get_next_states(self, current_state: str) -> List[str]:
-        """
-        Retorna lista de estados válidos desde el estado actual.
-
-        Args:
-            current_state: Estado actual (string)
-
-        Returns:
-            Lista de strings de estados válidos
-        """
+        """ Retorna lista de estados válidos desde el estado actual."""
         state = ReceptionState.from_string(current_state)
         if not state:
             return []
@@ -160,28 +135,13 @@ class ConversationStateMachine:
         return [s.value for s in next_states]
 
     def is_terminal_state(self, state: str) -> bool:
-        """
-        Verifica si un estado es terminal.
-
-        Args:
-            state: Estado a verificar (string)
-
-        Returns:
-            True si es estado terminal
-        """
+        """ Verifica si un estado es terminal. """
         state_enum = ReceptionState.from_string(state)
         return state_enum in self.terminal_states if state_enum else False
 
     def get_flow_progress(self, current_state: str) -> float:
-        """
-        Calcula el progreso del flujo (0.0 a 1.0).
-
-        Args:
-            current_state: Estado actual (string)
-
-        Returns:
-            Porcentaje de progreso (0.0 = inicio, 1.0 = completado)
-        """
+        """ Calcula el progreso del flujo (0.0 a 1.0). """
+        
         # Orden del flujo principal
         flow_order = [
             ReceptionState.NUEVO,
@@ -205,15 +165,7 @@ class ConversationStateMachine:
         self,
         conversation_history: List[str]
     ) -> tuple[bool, Optional[str]]:
-        """
-        Valida que el historial de estados sea coherente.
-
-        Args:
-            conversation_history: Lista de estados en orden cronológico
-
-        Returns:
-            (is_valid, error_message)
-        """
+        """ Valida que el historial de estados sea coherente. """
         if not conversation_history:
             return False, "Historial vacío"
 
@@ -231,15 +183,7 @@ class ConversationStateMachine:
         return True, None
 
     def get_required_fields(self, state: str) -> List[str]:
-        """
-        Retorna campos requeridos para avanzar desde un estado.
-
-        Args:
-            state: Estado actual (string)
-
-        Returns:
-            Lista de campos requeridos en conversation data
-        """
+        """ Retorna campos requeridos para avanzar desde un estado."""
         state_enum = ReceptionState.from_string(state)
 
         required_fields_map = {

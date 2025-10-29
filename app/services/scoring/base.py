@@ -19,100 +19,44 @@ class ScoringResult:
 
 
 class LeadScorer(ABC):
-    """
-    Strategy base para scoring de leads.
-
-    Ventajas sobre metodos monoliticos:
-    - Complejidad ciclomatica reducida (cada scorer es simple)
-    - Testeable independientemente
-    - Extensible (nuevos scorers sin modificar existentes)
-    - Reutilizable (mismo scorer en multiples contextos)
-    """
+    """ Strategy base para scoring de leads."""
 
     def __init__(self, name: str):
-        """
-        Args:
-            name: Nombre descriptivo del scorer
-        """
+  
         self.name = name
 
     @abstractmethod
     def score(self, lead_data: Dict[str, Any]) -> ScoringResult:
-        """
-        Calcula score del lead.
-
-        Args:
-            lead_data: Datos del lead a evaluar
-
-        Returns:
-            ScoringResult con score y metadata
-        """
+        """Calcula scoring del lead."""
         pass
 
     def validate_data(self, lead_data: Dict[str, Any]) -> bool:
-        """
-        Valida que lead_data tenga campos requeridos.
-
-        Args:
-            lead_data: Datos del lead
-
-        Returns:
-            True si datos validos
-        """
+        """ Valida que lead_data tenga campos requeridos """
         return bool(lead_data)
 
 
 class LeadTagger(ABC):
-    """
-    Strategy base para generacion de tags.
-
-    Tags ayudan a categorizar y priorizar leads en CRM.
-    """
+    """ Strategy base para generacion de tags. """
 
     def __init__(self, name: str):
-        """
-        Args:
-            name: Nombre descriptivo del tagger
-        """
         self.name = name
 
     @abstractmethod
     def generate_tags(self, lead_data: Dict[str, Any]) -> List[str]:
-        """
-        Genera tags para el lead.
-
-        Args:
-            lead_data: Datos del lead
-
-        Returns:
-            Lista de tags generadas
-        """
+        """ Genera tags para el lead. """
         pass
 
 
 class PriorityClassifier(ABC):
-    """
-    Strategy base para clasificacion de prioridad.
-
-    Determina que tan urgente es contactar al lead.
+    """ clasificacion de prioridad. 
+        Determina que tan urgente es contactar al lead.
     """
 
     def __init__(self, name: str):
-        """
-        Args:
-            name: Nombre descriptivo del classifier
-        """
+    
         self.name = name
 
     @abstractmethod
     def classify(self, lead_data: Dict[str, Any]) -> str:
-        """
-        Clasifica prioridad del lead.
-
-        Args:
-            lead_data: Datos del lead
-
-        Returns:
-            Nivel de prioridad (ej: "ALTA", "MEDIA", "BAJA")
-        """
-        pass
+     """Clasifica prioridad del lead"""
+     pass

@@ -1,0 +1,73 @@
+{
+  "customer_data": {
+    "name": "María Familia",
+    "whatsapp": "+573009876543",
+    "needs": "Busco casa para mi familia con 4 habitaciones cerca de colegios buenos",
+    "quality_score": 90,
+    "tags": [
+      "CASA"
+    ],
+    "priority": "MEDIA",
+    "source": "whatsapp_bot",
+    "quality_confidence": 0.8,
+    "quality_factors": {
+      "high_keywords": 2,
+      "medium_keywords": 1,
+      "base_score": 40
+    },
+    "quality_reasoning": "Score basado en 2 keywords high-value y 1 medium-value",
+    "client_classification": {
+      "profile": "familia",
+      "sophistication_level": "medio",
+      "confidence": 0.9,
+      "reasoning": "Clasificación por reglas basada en keywords: para mi familia",
+      "detected_keywords": [
+        "para mi familia"
+      ],
+      "profession_explicit": false,
+      "classification_method": "rules",
+      "cost_usd": 0.0,
+      "latency_ms": 0.03160000778734684
+    }
+  },
+  "crm_simulation": {
+    "lead_id": "DEMO_20251027_101339",
+    "status": "nuevo",
+    "assigned_to": "Sin asignar",
+    "created_at": "2025-10-27T10:13:39.263359",
+    "next_followup": "2025-10-30",
+    "estimated_value": "medio",
+    "confidence_level": 0.8,
+    "priority": "MEDIA"
+  },
+  "metadata": {
+    "property_type": "casa",
+    "rooms": 4,
+    "urgency_level": "low",
+    "extracted_at": "2025-10-27T10:13:39.263289"
+  },
+  "visualization_type": "demo_preview",
+  "integrated_analysis": {
+    "composite_score": 90.0,
+    "conversion_probability": 1.0,
+    "estimated_value": "medio",
+    "priority_adjusted": "MEDIA",
+    "priority_numeric": 5,
+    "lead_segment": "family_premium",
+    "segment_description": "Familia Premium",
+    "key_insights": [
+      "📊 Familia con alta intención de compra",
+      "⭐ Lead de calidad excepcional",
+      "👨‍👩‍👧‍👦 Familia buscando 4 habitaciones"
+    ],
+    "recommended_actions": [],
+    "risk_factors": [
+      "📍 Sin ubicación especificada",
+      "💵 Sin presupuesto definido"
+    ],
+    "profile": "familia",
+    "sophistication": "medio",
+    "analysis_confidence": 0.84,
+    "analysis_timestamp": "2025-10-27T10:13:39.263339"
+  }
+}

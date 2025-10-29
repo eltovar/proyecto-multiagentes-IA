@@ -1,15 +1,3 @@
-#!/usr/bin/env python3
-"""
-Utilizado para desarrollo y despliegue.
-Script para construir la base de conocimiento RAG del sistema multiagentes.
-
-Este script:
-1. Lee archivos de conocimiento desde knowledge_base/
-2. Genera embeddings usando sentence-transformers
-3. Crea índice FAISS para búsqueda semántica
-4. Guarda la base de conocimiento para el Agente de Soporte
-"""
-
 import os
 import json
 import pickle
@@ -28,7 +16,6 @@ VECTOR_DIMENSION = 384  # Dimensión del modelo MiniLM-L6-v2
 class RAGKnowledgeBuilder:
     """
     Constructor de base de conocimiento RAG para el Agente de Soporte.
-
     Procesa documentos de texto y crea un índice vectorial para búsqueda semántica.
     """
 
@@ -45,17 +32,7 @@ class RAGKnowledgeBuilder:
         print(f"✅ Modelo {EMBEDDINGS_MODEL} cargado correctamente")
 
     def load_knowledge_documents(self) -> List[Dict[str, Any]]:
-        """
-        Carga todos los documentos de la carpeta knowledge_base/.
-
-        Soporta archivos:
-        - .txt: Texto plano
-        - .md: Markdown
-        - .json: JSON con estructura {"title": "", "content": ""}
-
-        Returns:
-            List[Dict]: Lista de documentos con id, title, content, source
-        """
+        """ Carga todos los documentos de la carpeta knowledge_base """
         documents = []
         knowledge_path = Path(KNOWLEDGE_BASE_DIR)
 
@@ -134,15 +111,7 @@ Contacto:
             return ""
 
     def generate_embeddings(self, documents: List[Dict[str, Any]]) -> np.ndarray:
-        """
-        Genera embeddings para todos los documentos.
-
-        Args:
-            documents: Lista de documentos con campo 'content'
-
-        Returns:
-            np.ndarray: Array de embeddings
-        """
+        """ Genera embeddings para todos los documentos. """
         print("🔄 Generando embeddings...")
 
         # Extraer contenido de documentos
@@ -161,15 +130,7 @@ Contacto:
         return embeddings
 
     def build_faiss_index(self, embeddings: np.ndarray) -> faiss.Index:
-        """
-        Construye índice FAISS para búsqueda vectorial eficiente.
-
-        Args:
-            embeddings: Array de embeddings
-
-        Returns:
-            faiss.Index: Índice FAISS construido
-        """
+        """ Construye índice FAISS para búsqueda vectorial eficiente """
         print("🔄 Construyendo índice FAISS...")
 
         dimension = embeddings.shape[1]
@@ -205,14 +166,7 @@ Contacto:
         embeddings: np.ndarray,
         faiss_index: faiss.Index
     ):
-        """
-        Guarda la base de conocimiento completa.
-
-        Args:
-            documents: Lista de documentos
-            embeddings: Array de embeddings
-            faiss_index: Índice FAISS
-        """
+        """ Guarda la base de conocimiento completa """
         print("💾 Guardando base de conocimiento...")
 
         # Crear directorio de salida

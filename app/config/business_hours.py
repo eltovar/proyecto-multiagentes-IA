@@ -4,20 +4,11 @@ from zoneinfo import ZoneInfo
 
 
 class BusinessHoursConfig:
-    """
-    Configuración y validación de horarios laborales.
-
-    Clase estática que proporciona métodos para:
-    - Verificar si un timestamp está en horario laboral
-    - Generar mensajes apropiados fuera de horario
-    - Calcular próximo horario hábil
-    """
+    """ Configuración y validación de horarios laborales."""
 
     # Timezone de Colombia
     TIMEZONE = "America/Bogota"
-
-    # Horarios por día de la semana (0=Lunes, 6=Domingo)
-    # Formato: (hora_inicio, hora_fin) o None si está cerrado
+    
     HOURS: Dict[int, Optional[Tuple[time, time]]] = {
         0: (time(8, 0), time(18, 0)),   # Lunes
         1: (time(8, 0), time(18, 0)),   # Martes
@@ -41,26 +32,7 @@ class BusinessHoursConfig:
 
     @classmethod
     def is_business_hours(cls, dt: Optional[datetime] = None) -> bool:
-        """
-        Valida si un timestamp está dentro del horario laboral.
-
-        Args:
-            dt: Datetime a validar. Si es None, usa datetime.now()
-
-        Returns:
-            True si está en horario laboral, False en caso contrario
-
-        Example:
-            >>> from datetime import datetime
-            >>> # Lunes 10:00 AM
-            >>> dt = datetime(2025, 10, 6, 10, 0)
-            >>> BusinessHoursConfig.is_business_hours(dt)
-            True
-            >>> # Domingo 10:00 AM
-            >>> dt = datetime(2025, 10, 5, 10, 0)
-            >>> BusinessHoursConfig.is_business_hours(dt)
-            False
-        """
+        
         if dt is None:
             dt = datetime.now(ZoneInfo(cls.TIMEZONE))
         elif dt.tzinfo is None:
@@ -89,11 +61,6 @@ class BusinessHoursConfig:
 
     @classmethod
     def get_out_of_hours_message(cls, customer_name: Optional[str] = None) -> str:
-        """
-        Genera mensaje personalizado para contactos fuera de horario.
-            >>> BusinessHoursConfig.get_out_of_hours_message("Carlos")
-            'Gracias Carlos por contactarnos.\\n\\nNuestro horario de atención es:...'
-        """
         saludo = f"Gracias{' ' + customer_name if customer_name else ''} por contactarnos."
 
         mensaje = f"""{saludo}
@@ -108,22 +75,7 @@ Hemos guardado tu consulta y un asesor te contactará en nuestro próximo horari
 
     @classmethod
     def get_next_business_datetime(cls, from_dt: Optional[datetime] = None) -> datetime:
-        """
-        Calcula el próximo datetime hábil desde un timestamp dado.
-
-        Args:
-            from_dt: Datetime desde el cual calcular. Si es None, usa datetime.now()
-
-        Returns:
-            Próximo datetime en horario laboral
-
-        Example:
-            >>> # Viernes 7:00 PM (fuera de horario)
-            >>> dt = datetime(2025, 10, 3, 19, 0)
-            >>> next_dt = BusinessHoursConfig.get_next_business_datetime(dt)
-            >>> next_dt
-            datetime(2025, 10, 6, 8, 0)  # Lunes 8:00 AM
-        """
+        
         if from_dt is None:
             from_dt = datetime.now(ZoneInfo(cls.TIMEZONE))
         elif from_dt.tzinfo is None:
@@ -151,17 +103,7 @@ Hemos guardado tu consulta y un asesor te contactará en nuestro próximo horari
 
     @classmethod
     def get_business_hours_info(cls) -> Dict[str, str]:
-        """
-        Retorna información estructurada de horarios.
-
-        Returns:
-            Dict con horarios formateados por día
-
-        Example:
-            >>> info = BusinessHoursConfig.get_business_hours_info()
-            >>> info["Lunes"]
-            '8:00 AM - 6:00 PM'
-        """
+        
         info = {}
 
         for weekday, day_name in cls.DAY_NAMES.items():
@@ -177,39 +119,12 @@ Hemos guardado tu consulta y un asesor te contactará en nuestro próximo horari
 
     @classmethod
     def format_time_12h(cls, t: time) -> str:
-        """
-        Formatea time object a formato 12 horas (AM/PM).
-
-        Args:
-            t: time object
-
-        Returns:
-            String formateado (ej: "8:00 AM")
-        """
+        
         return t.strftime("%I:%M %p").lstrip('0')
 
     @classmethod
     def get_current_status(cls) -> Dict[str, any]:
-        """
-        Obtiene estado actual del horario laboral.
-
-        Returns:
-            Dict con información de estado actual:
-            - is_open: bool
-            - current_time: str
-            - day_name: str
-            - message: str
-
-        Example:
-            >>> status = BusinessHoursConfig.get_current_status()
-            >>> status
-            {
-                "is_open": True,
-                "current_time": "10:30 AM",
-                "day_name": "Lunes",
-                "message": "Estamos disponibles ahora"
-            }
-        """
+        
         now = datetime.now(ZoneInfo(cls.TIMEZONE))
         is_open = cls.is_business_hours(now)
         weekday = now.weekday()

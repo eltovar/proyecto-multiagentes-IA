@@ -1,27 +1,3 @@
-#!/usr/bin/env python3
-"""
-Database Migration Script - PR #1 Fundamentos
-============================================
-
-Script para ejecutar migraciones de base de datos de manera segura.
-
-FEATURES:
-- Backup automático antes de migración
-- Rollback en caso de error
-- Validación de schema
-- Logging detallado
-
-USAGE:
-    python scripts/migrate_db.py [--dry-run] [--rollback]
-
-OPTIONS:
-    --dry-run    : Simula la migración sin ejecutarla
-    --rollback   : Revierte la última migración
-    --migration N: Ejecuta migración específica (default: 001)
-
-VERSION: 1.0.0
-"""
-
 import sqlite3
 import os
 import sys
@@ -73,16 +49,7 @@ class DatabaseMigrator:
             raise
 
     def execute_migration(self, migration_file: str, dry_run: bool = False) -> bool:
-        """
-        Ejecuta una migración SQL.
-
-        Args:
-            migration_file: Path al archivo .sql
-            dry_run: Si es True, solo muestra el SQL sin ejecutar
-
-        Returns:
-            True si la migración fue exitosa
-        """
+        """ Ejecuta una migración SQL. """
         migration_path = os.path.join(self.migrations_dir, migration_file)
 
         if not os.path.exists(migration_path):
@@ -125,15 +92,7 @@ class DatabaseMigrator:
             return False
 
     def verify_migration(self, expected_columns: list) -> bool:
-        """
-        Verifica que la migración se aplicó correctamente.
-
-        Args:
-            expected_columns: Lista de nombres de columnas esperadas
-
-        Returns:
-            True si la verificación fue exitosa
-        """
+        """ Verifica que la migración se aplicó correctamente. """
         if not os.path.exists(self.db_path):
             print(f"[ERROR] Base de datos no existe: {self.db_path}")
             return False
@@ -171,15 +130,7 @@ class DatabaseMigrator:
             return False
 
     def restore_backup(self, backup_path: str) -> bool:
-        """
-        Restaura la base de datos desde un backup.
-
-        Args:
-            backup_path: Path al archivo de backup
-
-        Returns:
-            True si la restauración fue exitosa
-        """
+        """ Restaura la base de datos desde un backup."""
         if not os.path.exists(backup_path):
             print(f"[ERROR] Backup no encontrado: {backup_path}")
             return False

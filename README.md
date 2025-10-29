@@ -1,3 +1,5 @@
+# source .venv/Scripts/activate
+
 # 🤖 Agente IA Multiagentes para Automatización de Leads
 
 ## 📋 Descripción del Proyecto

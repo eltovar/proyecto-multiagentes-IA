@@ -1,0 +1,77 @@
+[
+  {
+    "id": 1,
+    "message": "Busco apartamento para inversión, me interesa la rentabilidad",
+    "expected_profile": "inversionista",
+    "expected_sophistication": "medio",
+    "expected_method": "rules"
+  },
+  {
+    "id": 2,
+    "message": "Soy arquitecto y busco casa para remodelar con buenos espacios",
+    "expected_profile": "arquitecto",
+    "expected_sophistication": "medio",
+    "expected_method": "rules",
+    "note": "Sophistication 'medio': tiene profesión explícita pero sin keywords técnicos avanzados"
+  },
+  {
+    "id": 3,
+    "message": "Necesito local comercial para mi empresa de tecnología",
+    "expected_profile": "empresario",
+    "expected_sophistication": "medio",
+    "expected_method": "rules"
+  },
+  {
+    "id": 4,
+    "message": "Busco casa para mi familia cerca de colegios buenos",
+    "expected_profile": "familia",
+    "expected_sophistication": "medio",
+    "expected_method": "rules"
+  },
+  {
+    "id": 5,
+    "message": "Es mi primera vez comprando, no sé mucho del proceso",
+    "expected_profile": "individual",
+    "expected_sophistication": "bajo",
+    "expected_method": "rules"
+  },
+  {
+    "id": 6,
+    "message": "Me interesa una propiedad con potencial de diseño y ubicación comercial",
+    "expected_profile": "arquitecto|empresario",
+    "expected_sophistication": "medio",
+    "expected_method": "llm",
+    "note": "Caso ambiguo, requiere LLM. Diseño→arquitecto, ubicación comercial→empresario"
+  },
+  {
+    "id": 7,
+    "message": "Busco apartamento de 2 habitaciones en buen sector",
+    "expected_profile": "individual|familia",
+    "expected_sophistication": "medio|bajo",
+    "expected_method": "rules|llm",
+    "note": "Caso ambiguo: 2 habitaciones puede ser individual o familia pequeña"
+  },
+  {
+    "id": 8,
+    "message": "Analicé el ROI de la zona y tiene buena proyección de plusvalía histórica",
+    "expected_profile": "inversionista",
+    "expected_sophistication": "alto",
+    "expected_method": "rules"
+  },
+  {
+    "id": 9,
+    "message": "Soy corredor inmobiliario buscando propiedades para mi cartera",
+    "expected_profile": "corredor",
+    "expected_sophistication": "medio",
+    "expected_method": "rules",
+    "note": "Sophistication 'medio': profesión explícita pero sin análisis de mercado o términos técnicos"
+  },
+  {
+    "id": 10,
+    "message": "Trabajo en construcción y busco casa con buena estructura",
+    "expected_profile": "ingeniero",
+    "expected_sophistication": "medio",
+    "expected_method": "rules",
+    "note": "Sophistication 'medio': keyword 'construcción' detecta ingeniero, pero sin análisis técnico detallado"
+  }
+]

@@ -50,12 +50,6 @@ class BaseAgent(ABC):
         """Permite inyección de state_manager después de __init__"""
         self._state_manager = value
 
-    #orquestador decide ruteo
-    @abstractmethod
-    async def can_handle(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> bool:
-        pass
-    
-    #lógica de cada agente
     @abstractmethod
     async def process_message(self, message_data: Dict[str, Any], conversation: Dict[str, Any]) -> Dict[str, Any]:
         pass
