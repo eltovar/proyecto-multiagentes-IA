@@ -5,24 +5,46 @@ Responsable de realizar búsquedas vectoriales con FAISS.
 
 import numpy as np
 import faiss
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from app.config import settings
 
 class RAGSearchEngine:
 
-    def __init__(self, faiss_index, documents, embeddings, model):
+    def __init__(
+        self,
+        faiss_index,
+        documents,
+        embeddings,
+        model,
+        query_expander: Optional['QueryExpander'] = None,
+        reranker: Optional['ReRanker'] = None
+    ):
         self.faiss_index = faiss_index
         self.documents = documents
         self.embeddings = embeddings
         self.model = model
+        self.query_expander = query_expander
+        self.reranker = reranker
 
     def search_similar_documents(
         self,
         query: str,
-        top_k: int = 3,
+        top_k: int = 20,  # Incrementado de 3 a 20 para re-ranking
         similarity_threshold: float = 10.0  # Ajustado para distancia L2
     ) -> List[Dict[str, Any]]:
         try:
-            query_embedding = self._compute_query_embedding(query)
+            # Query Expansion: expandir query antes de búsqueda vectorial
+            expanded_query = query
+            if self.query_expander:
+                try:
+                    expanded_query = self.query_expander.expand_sync(query)
+                    print(f"[RAGSearch] Original: '{query}' | Expanded: '{expanded_query}'")
+                except Exception as e:
+                    print(f"[RAGSearch] Error en query expansion, usando query original: {e}")
+                    expanded_query = query
+
+            # Búsqueda vectorial con query expandida
+            query_embedding = self._compute_query_embedding(expanded_query)
             similarities, indices = self.faiss_index.search(
                 query_embedding.astype('float32'),
                 top_k
@@ -30,8 +52,34 @@ class RAGSearchEngine:
 
             results = self._rank_results(similarities[0], indices[0], similarity_threshold)
 
-            print(f"[RAGSearch] Búsqueda completada: {len(results)} resultados para '{query[:50]}...'")
-            return results
+            print(f"[RAGSearch] FAISS búsqueda: {len(results)} resultados (top_k={top_k})")
+
+            # Re-ranking: Re-ordenar top-20 de FAISS a top-3 con CrossEncoder
+            if settings.reranker_enabled and self.reranker and len(results) > 0:
+                # Métricas pre-reranking
+                if results:
+                    faiss_top_score = results[0].get('similarity_score', 'N/A')
+                    print(f"[RAGSearch] FAISS top-1 score: {faiss_top_score}")
+
+                # Aplicar re-ranking
+                reranked_results = self.reranker.rerank(
+                    query=query,  # Usar query original para re-ranking
+                    docs=results,
+                    top_k=settings.reranker_top_k
+                )
+
+                # Métricas post-reranking
+                if reranked_results:
+                    reranked_top_score = reranked_results[0].get('rerank_score', 'N/A')
+                    print(f"[RAGSearch] Reranked top-1 score: {reranked_top_score}")
+                    print(f"[RAGSearch] Final results: {len(reranked_results)} docs (after re-ranking)")
+
+                return reranked_results
+            else:
+                # Feature flag deshabilitado o sin reranker: retornar top-3 de FAISS
+                top_3_results = results[:3]
+                print(f"[RAGSearch] Re-ranking deshabilitado, retornando top-{len(top_3_results)} de FAISS")
+                return top_3_results
 
         except Exception as e:
             print(f"[RAGSearch] Error en búsqueda: {e}")
@@ -55,7 +103,7 @@ class RAGSearchEngine:
         return results
 
     def get_context_for_response(self, query: str, max_context: int = 2000) -> str:
-        relevant_docs = self.search_similar_documents(query, top_k=8)  # Aumentado para mejor cobertura
+        relevant_docs = self.search_similar_documents(query, top_k=20)  # Incrementado a 20 para re-ranking
 
         if not relevant_docs:
             return ""

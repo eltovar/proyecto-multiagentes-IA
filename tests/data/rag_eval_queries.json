@@ -1,0 +1,145 @@
+[
+  {
+    "query": "gotera urgente",
+    "expected_doc_filename": "soporte_reparaciones_emergencias.txt",
+    "expected_phone": "3235158007",
+    "expected_keywords": ["reparacion", "urgente", "emergencia"],
+    "category": "department_transfer",
+    "description": "Consulta urgente de reparaciones - debe recuperar doc correcto y extraer telefono"
+  },
+  {
+    "query": "tengo una fuga de agua",
+    "expected_doc_filename": "soporte_reparaciones_emergencias.txt",
+    "expected_phone": "3235158007",
+    "expected_keywords": ["fuga", "agua", "emergencia"],
+    "category": "department_transfer",
+    "description": "Emergencia de fuga - debe priorizar doc de reparaciones"
+  },
+  {
+    "query": "necesito reparar un daño",
+    "expected_doc_filename": "soporte_reparaciones_emergencias.txt",
+    "expected_phone": "3235158007",
+    "expected_keywords": ["daño", "reparacion", "mantenimiento"],
+    "category": "department_transfer",
+    "description": "Solicitud de reparacion generica"
+  },
+  {
+    "query": "¿puedo visitar en fin de semana?",
+    "expected_doc_filename": "info_empresa_contacto_filosofia.txt",
+    "expected_keywords": ["horario", "atencion", "contacto"],
+    "category": "general",
+    "description": "Consulta indirecta sobre horarios - requiere query expansion"
+  },
+  {
+    "query": "que servicios ofrecen?",
+    "expected_doc_filename": "soporte_servicios_publicos.txt",
+    "expected_keywords": ["servicio", "agua", "luz", "gas"],
+    "category": "general",
+    "description": "Consulta general sobre servicios"
+  },
+  {
+    "query": "como funciona el proceso de arriendo?",
+    "expected_doc_filename": "blog_arriendo_contrato_legalidad.txt",
+    "expected_keywords": ["arriendo", "contrato", "proceso"],
+    "category": "general",
+    "description": "Consulta sobre proceso de arriendo"
+  },
+  {
+    "query": "informacion sobre la empresa",
+    "expected_doc_filename": "nuestra_empresa.txt",
+    "expected_keywords": ["empresa", "historia", "filosofia"],
+    "category": "general",
+    "description": "Consulta sobre informacion corporativa"
+  },
+  {
+    "query": "como pago las facturas?",
+    "expected_doc_filename": "soporte_caja_pagos.txt",
+    "expected_keywords": ["pago", "factura", "caja"],
+    "category": "general",
+    "description": "Consulta sobre pagos"
+  },
+  {
+    "query": "tengo problemas con el contrato",
+    "expected_doc_filename": "soporte_contratos_terminacion.txt",
+    "expected_keywords": ["contrato", "terminacion", "clausula"],
+    "category": "department_transfer",
+    "description": "Problema con contratos - debe dirigir a departamento correcto"
+  },
+  {
+    "query": "necesito asesoría legal",
+    "expected_doc_filename": "soporte_juridico_legal.txt",
+    "expected_keywords": ["legal", "juridico", "asesoria"],
+    "category": "department_transfer",
+    "description": "Solicitud de asesoria legal"
+  },
+  {
+    "query": "cuales son los riesgos al arrendar?",
+    "expected_doc_filename": "blog_arriendo_claves_riesgos.txt",
+    "expected_keywords": ["riesgo", "arriendo", "clave"],
+    "category": "general",
+    "description": "Consulta sobre riesgos en arriendo"
+  },
+  {
+    "query": "como evitar fraudes en arriendo?",
+    "expected_doc_filename": "blog_arriendo_estudios_fraude.txt",
+    "expected_keywords": ["fraude", "estudio", "verificacion"],
+    "category": "general",
+    "description": "Consulta sobre prevencion de fraudes"
+  },
+  {
+    "query": "quien paga la administracion?",
+    "expected_doc_filename": "blog_arriendo_gastos_administracion.txt",
+    "expected_keywords": ["administracion", "gasto", "cuota"],
+    "category": "general",
+    "description": "Consulta sobre gastos de administracion"
+  },
+  {
+    "query": "pueden subir el arriendo?",
+    "expected_doc_filename": "blog_arriendo_incrementos_ley.txt",
+    "expected_keywords": ["incremento", "ley", "arriendo"],
+    "category": "general",
+    "description": "Consulta sobre incrementos legales de arriendo"
+  },
+  {
+    "query": "en que zonas tienen propiedades?",
+    "expected_doc_filename": "info_cobertura_propiedades.txt",
+    "expected_keywords": ["cobertura", "zona", "propiedad"],
+    "category": "property_inquiry",
+    "description": "Consulta sobre cobertura de propiedades"
+  },
+  {
+    "query": "como pago online?",
+    "expected_doc_filename": "info_pagos_online.txt",
+    "expected_keywords": ["pago", "online", "plataforma"],
+    "category": "general",
+    "description": "Consulta sobre pagos en linea"
+  },
+  {
+    "query": "tengo una multa de la administracion",
+    "expected_doc_filename": "soporte_administraciones_multas.txt",
+    "expected_keywords": ["multa", "administracion", "sancion"],
+    "category": "department_transfer",
+    "description": "Problema con multas de administracion"
+  },
+  {
+    "query": "necesito la factura del mes",
+    "expected_doc_filename": "soporte_contabilidad_facturas.txt",
+    "expected_keywords": ["factura", "contabilidad", "mes"],
+    "category": "department_transfer",
+    "description": "Solicitud de facturas"
+  },
+  {
+    "query": "cuando entregan la propiedad?",
+    "expected_doc_filename": "soporte_recibimientos_entregas.txt",
+    "expected_keywords": ["entrega", "recibimiento", "propiedad"],
+    "category": "general",
+    "description": "Consulta sobre entregas de propiedades"
+  },
+  {
+    "query": "problema con el agua y la luz",
+    "expected_doc_filename": "soporte_servicios_publicos.txt",
+    "expected_keywords": ["agua", "luz", "servicio"],
+    "category": "department_transfer",
+    "description": "Problema con servicios publicos"
+  }
+]

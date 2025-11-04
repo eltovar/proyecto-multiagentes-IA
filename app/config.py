@@ -3,6 +3,10 @@ from typing import Optional, Dict, Any
 import os
 import json
 from pydantic import ConfigDict
+from dotenv import load_dotenv
+
+# Cargar .env explícitamente para que os.getenv() funcione
+load_dotenv()
 
 class Settings(BaseSettings): #Hereda de baseSetting para configuraciones automaticas de .env
     
@@ -45,6 +49,11 @@ class Settings(BaseSettings): #Hereda de baseSetting para configuraciones automa
 
     # Security
     webhook_verify_signature: bool = True
+
+    # RAG Re-ranking Configuration
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    reranker_top_k: int = 3
+    reranker_enabled: bool = True  # Feature flag para A/B testing
 
     model_config = ConfigDict(
         env_file=".env",

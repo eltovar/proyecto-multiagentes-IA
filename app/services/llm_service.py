@@ -444,4 +444,6 @@ class LLMService: #Orquestador y unificador de classifier + generator
         except Exception as e:
             return {"status": "unhealthy", "reason": str(e)}
 
+# Singleton global con inicialización automática
 llm_service = LLMService()
+llm_service.initialize()  # ← CRÍTICO: Inicializar en import

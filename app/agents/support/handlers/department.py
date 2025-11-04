@@ -61,16 +61,27 @@ class DepartmentHandler:
         rag_result: Dict[str, Any],
         department: str
     ) -> Optional[Dict[str, str]]:
-        """Extrae informacion de contacto del resultado RAG"""
+        """
+        Extrae informacion de contacto del resultado RAG.
 
-        # Extraer phone_numbers del RAG
+        Nota: La extracción de teléfonos por regex ocurre en RAGSystem
+        sobre los top-3 documentos rerankeados.
+        """
+
+        # Extraer phone_numbers del RAG (ya extraídos por regex en RAGSystem)
         phone_numbers = rag_result.get("phone_numbers", [])
+        documents = rag_result.get("documents", [])
+
+        # Log de debugging
+        print(f"[DepartmentHandler] Phone extraction: found {len(phone_numbers)} numbers in {len(documents)} docs")
 
         if phone_numbers:
+            print(f"[DepartmentHandler] Using phone: {phone_numbers[0]}")
             return {
                 "department": department,
                 "phone": phone_numbers[0],
                 "source": "rag"
             }
 
+        print(f"[DepartmentHandler] No phone numbers found for {department}")
         return None

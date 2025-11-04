@@ -1,0 +1,127 @@
+[Config] WARNING: DEPARTMENT_CONTACTS usando valores por defecto (no ENV configurado)
+
+================================================================================
+EVALUACION DE RAG: Query Expansion + Re-ranking
+================================================================================
+
+[Evaluator] Cargadas 20 queries de evaluacion
+[1/4] Inicializando servicios...
+OK
+
+[2/4] Evaluando BASELINE (sin Query Expansion ni Re-ranking)...
+[RAGSystem] Iniciando sistema RAG
+[RAGLoader] Cargando modelo de embeddings
+[RAGLoader] Cargados 17 documentos
+[RAGLoader] Cargados embeddings: (41, 384)
+[RAGLoader] Índice FAISS cargado: 17 vectores
+[RAGSystem] Sistema inicializado: 17 documentos
+
+[Evaluator] Iniciando evaluacion en modo: baseline
+================================================================================
+Evaluando query 1/20: 'gotera urgente...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 3 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 1405 caracteres de 3 documentos
+Evaluando query 2/20: 'tengo una fuga de agua...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 1 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2004 caracteres de 3 documentos
+Evaluando query 3/20: 'necesito reparar un daño...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 2 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2004 caracteres de 3 documentos
+Evaluando query 4/20: '¿puedo visitar en fin de semana?...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 3 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2004 caracteres de 3 documentos
+Evaluando query 5/20: 'que servicios ofrecen?...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 4 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2002 caracteres de 2 documentos
+Evaluando query 6/20: 'como funciona el proceso de arriendo?...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 2 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 1916 caracteres de 2 documentos
+Evaluando query 7/20: 'informacion sobre la empresa...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 3 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2002 caracteres de 2 documentos
+Evaluando query 8/20: 'como pago las facturas?...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 1 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2004 caracteres de 3 documentos
+Evaluando query 9/20: 'tengo problemas con el contrato...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 1 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 1971 caracteres de 2 documentos
+Evaluando query 10/20: 'necesito asesoría legal...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 0 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2002 caracteres de 2 documentos
+Evaluando query 11/20: 'cuales son los riesgos al arrendar?...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 1 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2004 caracteres de 3 documentos
+Evaluando query 12/20: 'como evitar fraudes en arriendo?...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 2 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2004 caracteres de 3 documentos
+Evaluando query 13/20: 'quien paga la administracion?...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 1 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2004 caracteres de 3 documentos
+Evaluando query 14/20: 'pueden subir el arriendo?...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 1 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2004 caracteres de 3 documentos
+Evaluando query 15/20: 'en que zonas tienen propiedades?...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 1 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2004 caracteres de 3 documentos
+Evaluando query 16/20: 'como pago online?...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 1 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 1920 caracteres de 2 documentos
+Evaluando query 17/20: 'tengo una multa de la administracion...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 2 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSearch] Contexto generado: 2004 caracteres de 3 documentos
+Evaluando query 18/20: 'necesito la factura del mes...'[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
+[RAGSystem] Phone extraction: found 4 numbers in 3 docs
+[RAGSearch] FAISS búsqueda: 17 resultados (top_k=20)
+[RAGSearch] Re-ranking deshabilitado, retornando top-3 de FAISS
